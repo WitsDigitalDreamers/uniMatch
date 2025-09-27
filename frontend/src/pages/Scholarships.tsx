@@ -192,17 +192,7 @@ const Scholarships = () => {
               </div>
             </div>
 
-            {bursary.eligibility.additional_criteria && (
-              <div>
-                <h5 className="font-medium text-sm mb-1">Additional Criteria:</h5>
-                <ul className="text-xs text-muted-foreground space-y-0.5">
-                  {bursary.eligibility.additional_criteria.map((criteria, index) => (
-                    <li key={index}>• {criteria}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
+      
             {!eligibility.eligible && (
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                 <h5 className="text-sm font-medium text-destructive mb-1">Why you're not eligible:</h5>
@@ -218,7 +208,12 @@ const Scholarships = () => {
               <Button 
                 className="w-full" 
                 variant={eligibility.eligible ? "default" : "outline"}
-                disabled={isExpired}
+                disabled={isExpired || !bursary.application_url}
+                onClick={() => {
+                  if (bursary.application_url) {
+                    window.open(bursary.application_url, '_blank');
+                  }
+                }}
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 {isExpired ? 'Application Closed' : 'Apply Now'}
@@ -239,24 +234,7 @@ const Scholarships = () => {
           Find financial aid opportunities for your university studies. Your APS: <span className="font-semibold text-primary">{aps}</span>
         </p>
       </div>
-
-      {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Relevant Bursaries</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{relevantBursaries.length}</div>
-            <p className="text-xs text-muted-foreground">
-              For your eligible courses
-            </p>
-          </CardContent>
-        </Card>
-
-        
-      </div>
+ 
 
       {/* Urgent Deadlines Alert */}
       {relevantBursaries.some(b => getDaysUntilDeadline(b.deadline) <= 14 && getDaysUntilDeadline(b.deadline) >= 0) && (

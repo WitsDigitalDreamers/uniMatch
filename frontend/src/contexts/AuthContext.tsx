@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (idNumber: string, username: string) => Promise<boolean>;
   signup: (studentData: Omit<Student, 'id_number'> & { id_number: string }) => Promise<boolean>;
   logout: () => void;
+  refreshStudent: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -169,11 +170,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setStudent(null);
   };
 
+  const refreshStudent = async () => {
+    if (!student) return;
+    
+    try {
+      // Fetch updated student data from database
+      const { data, error } = await supabase
+        .from('students')
+        .select('id_number, username, first_name, last_name, email, school_id, marks, preferred_residences, created_at, updated_at')
+        .eq('id_number', student.id_number)
+        .single();
+
+      if (error) {
+        console.error('Error refreshing student data:', error);
+        return;
+      }
+
+      if (data) {
+        // Update localStorage and state
+        localStorage.setItem('student_data', JSON.stringify(data));
+        setStudent(data as Student);
+      }
+    } catch (error) {
+      console.error('Error refreshing student data:', error);
+    }
+  };
+
   const value = {
     student,
     login,
     signup,
     logout,
+    refreshStudent,
     isAuthenticated: !!student,
     isLoading
   };

@@ -1635,7 +1635,8 @@ export const bursaries: Bursary[] = [
       minimum_aps: 30,
       additional_criteria: ["South African citizen", "First-time university student"]
     },
-    deadline: "2024-11-30"
+    deadline: "2025-11-30",
+    application_url: "https://www.nsfas.org.za/content/how-to-apply.html"
   },
   {
     bursary_id: "BURS002", 
@@ -1646,7 +1647,8 @@ export const bursaries: Bursary[] = [
       faculties: ["Engineering"],
       additional_criteria: ["Commit to work for Sasol after graduation", "South African citizen"]
     },
-    deadline: "2024-09-30"
+    deadline: "2025-09-30",
+    application_url: "https://www.sasol.com/careers/students-and-graduates/bursaries"
   },
   {
     bursary_id: "BURS003",
@@ -1656,7 +1658,8 @@ export const bursaries: Bursary[] = [
       minimum_aps: 35,
       additional_criteria: ["Leadership potential", "Entrepreneurial spirit", "Academic excellence"]
     },
-    deadline: "2024-10-15"
+    deadline: "2025-10-15",
+    application_url: "https://www.allangrayorbis.org/fellowship"
   },
   {
     bursary_id: "BURS004",
@@ -1667,7 +1670,8 @@ export const bursaries: Bursary[] = [
       faculties: ["Engineering", "Mining", "Geology"],
       additional_criteria: ["South African citizen", "Commit to work for Anglo American"]
     },
-    deadline: "2024-08-31"
+    deadline: "2025-08-31",
+    application_url: "https://www.angloamerican.com/careers/students-and-graduates/bursaries"
   },
   {
     bursary_id: "BURS005",
@@ -1678,7 +1682,8 @@ export const bursaries: Bursary[] = [
       faculties: ["Commerce", "Business", "Economics"],
       additional_criteria: ["South African citizen", "Financial need"]
     },
-    deadline: "2024-09-15"
+    deadline: "2025-09-15",
+    application_url: "https://www.standardbank.co.za/southafrica/personal/products-and-services/student-banking/bursaries"
   },
   {
     bursary_id: "BURS006",
@@ -1689,7 +1694,8 @@ export const bursaries: Bursary[] = [
       faculties: ["Engineering", "Science"],
       additional_criteria: ["South African citizen", "Commit to work for Eskom"]
     },
-    deadline: "2024-08-30"
+    deadline: "2025-08-30",
+    application_url: "https://www.eskom.co.za/careers/students-and-graduates/bursaries"
   },
   {
     bursary_id: "BURS007",
@@ -1700,7 +1706,8 @@ export const bursaries: Bursary[] = [
       faculties: ["Engineering", "Logistics", "Transportation"],
       additional_criteria: ["South African citizen", "Commit to work for Transnet"]
     },
-    deadline: "2024-09-30"
+    deadline: "2025-09-30",
+    application_url: "https://www.transnet.net/careers/students-and-graduates/bursaries"
   },
   {
     bursary_id: "BURS008",
@@ -1711,7 +1718,8 @@ export const bursaries: Bursary[] = [
       faculties: ["Information Technology", "Computer Science", "Engineering"],
       additional_criteria: ["South African citizen", "Commit to work for MTN"]
     },
-    deadline: "2024-10-31"
+    deadline: "2025-10-31",
+    application_url: "https://www.mtn.co.za/careers/students-and-graduates/bursaries"
   },
   {
     bursary_id: "BURS009",
@@ -1722,7 +1730,8 @@ export const bursaries: Bursary[] = [
       faculties: ["Information Technology", "Computer Science", "Engineering"],
       additional_criteria: ["South African citizen", "Commit to work for Vodacom"]
     },
-    deadline: "2024-10-15"
+    deadline: "2025-10-15",
+    application_url: "https://www.vodacom.co.za/careers/students-and-graduates/bursaries"
   },
   {
     bursary_id: "BURS010",
@@ -1733,7 +1742,8 @@ export const bursaries: Bursary[] = [
       faculties: ["Health Sciences", "Medicine", "Actuarial Science"],
       additional_criteria: ["South African citizen", "Commit to work for Discovery"]
     },
-    deadline: "2024-09-30"
+    deadline: "2025-09-30",
+    application_url: "https://www.discovery.co.za/careers/students-and-graduates/bursaries"
   }
 ];
 

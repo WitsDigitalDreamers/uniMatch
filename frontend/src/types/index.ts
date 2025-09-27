@@ -102,6 +102,7 @@ export interface Bursary {
     additional_criteria?: string[];
   };
   deadline: string;
+  application_url?: string; // URL to official application website
 }
 
 // Residence Interface

@@ -149,6 +149,56 @@ class ProfileService {
     }
   }
 
+  // Update student marks in the students table
+  async updateStudentMarks(studentId: string, marks: Record<string, number>): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('students')
+        .update({ 
+          marks: marks,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id_number', studentId);
+
+      if (error) {
+        console.error('Error updating student marks:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error updating student marks:', error);
+      return false;
+    }
+  }
+
+  // Update student basic info in the students table
+  async updateStudentInfo(studentId: string, updates: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+  }): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('students')
+        .update({ 
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id_number', studentId);
+
+      if (error) {
+        console.error('Error updating student info:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error updating student info:', error);
+      return false;
+    }
+  }
+
   // Upload document file (placeholder - would need file storage service)
   async uploadDocument(file: File, documentType: string): Promise<string | null> {
     try {

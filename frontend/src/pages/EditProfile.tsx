@@ -91,7 +91,7 @@ interface ProfileData {
 }
 
 const EditProfile = () => {
-  const { student } = useAuth();
+  const { student, refreshStudent } = useAuth();
   const [profileData, setProfileData] = useState<ProfileData>({
     firstName: '',
     lastName: '',
@@ -377,17 +377,47 @@ const EditProfile = () => {
         documents: Object.keys(documentUrls).length > 0 ? documentUrls : undefined
       };
 
-      // Save to database
-      const success = await profileService.saveProfile(profileToSave);
+      // Save profile to database
+      const profileSuccess = await profileService.saveProfile(profileToSave);
       
-      if (success) {
-        toast({
-          title: "Profile Updated Successfully!",
-          description: "Your profile has been saved and is ready for applications.",
-        });
-      } else {
+      if (!profileSuccess) {
         throw new Error('Failed to save profile');
       }
+
+      // Convert subjects array to marks object for students table
+      const marksObject: Record<string, number> = {};
+      profileData.subjects.forEach(subject => {
+        // Convert subject name to the format used in students table
+        const subjectKey = subject.name.toLowerCase().replace(/\s+/g, '_');
+        marksObject[subjectKey] = subject.mark;
+      });
+
+      // Update student marks in students table
+      const marksSuccess = await profileService.updateStudentMarks(student.id_number, marksObject);
+      
+      if (!marksSuccess) {
+        console.warn('Failed to update student marks in students table');
+      }
+
+      // Update student basic info in students table
+      const studentInfoSuccess = await profileService.updateStudentInfo(student.id_number, {
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        email: profileData.email
+      });
+
+      if (!studentInfoSuccess) {
+        console.warn('Failed to update student info in students table');
+      }
+
+      // Refresh student data to reflect changes
+      await refreshStudent();
+
+      // Show success message
+      toast({
+        title: "Profile Updated Successfully!",
+        description: "Your profile and student information have been saved and are ready for applications.",
+      });
     } catch (error) {
       console.error('Error saving profile:', error);
       toast({
