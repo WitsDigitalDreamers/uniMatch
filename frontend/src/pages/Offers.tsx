@@ -137,9 +137,9 @@ const Offers = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Your University Offers</h1>
-          <p className="mt-2 text-gray-600">
-            Manage your university offers and make important decisions about your future.
-          </p>
+          <h2 className="text-gray-600"> accept offers from the official university website</h2>
+
+          
         </div>
 
         {offers.length === 0 ? (
@@ -206,6 +206,7 @@ const Offers = () => {
                       <div className="text-sm text-gray-600">
                         <p>Acceptance Deadline: {new Date(offer.acceptance_deadline).toLocaleDateString()}</p>
                         <p>Received: {new Date(offer.created_at).toLocaleDateString()}</p>
+                        
                       </div>
                       {offer.offer_status === 'Active' && (
                         <div className="flex gap-2">

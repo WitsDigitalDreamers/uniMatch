@@ -40,6 +40,18 @@ const CareerPlanning = () => {
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [courseCareers, setCourseCareers] = useState<Career[]>([]);
 
+  // Get courses that have corresponding careers
+  const getCoursesWithCareers = (): Course[] => {
+    const careerCourseIds = new Set<string>();
+    
+    careers.forEach(career => {
+      career.required_courses.forEach(courseId => careerCourseIds.add(courseId));
+      career.alternative_courses?.forEach(courseId => careerCourseIds.add(courseId));
+    });
+    
+    return courses.filter(course => careerCourseIds.has(course.course_id));
+  };
+
   useEffect(() => {
     loadCareers();
     if (student) {
@@ -145,17 +157,12 @@ const CareerPlanning = () => {
   const handleCourseChange = (courseId: string) => {
     setSelectedCourse(courseId);
     if (courseId && courseId !== 'all') {
-      const course = courses.find(c => c.course_id === courseId);
+      const course = getCoursesWithCareers().find(c => c.course_id === courseId);
       if (course) {
-        // Find careers that match this course
+        // Find careers that have this course in their required or alternative courses
         const relatedCareers = careers.filter(career => 
-          career.required_courses.some(requiredCourse => 
-            requiredCourse.toLowerCase().includes(course.faculty.toLowerCase()) ||
-            course.name.toLowerCase().includes(requiredCourse.toLowerCase())
-          ) ||
-          career.required_courses.some(requiredCourse => 
-            course.name.toLowerCase().includes(requiredCourse.toLowerCase())
-          )
+          career.required_courses.includes(courseId) ||
+          career.alternative_courses?.includes(courseId)
         );
         setCourseCareers(relatedCareers);
         setFilteredCareers(relatedCareers);
@@ -276,7 +283,7 @@ const CareerPlanning = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Courses</SelectItem>
-                  {courses.map(course => (
+                  {getCoursesWithCareers().map(course => (
                     <SelectItem key={course.course_id} value={course.course_id}>
                       {course.name} - {course.faculty}
                     </SelectItem>
@@ -288,8 +295,8 @@ const CareerPlanning = () => {
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h4 className="font-medium text-blue-900 mb-2">Selected Course:</h4>
                   <p className="text-blue-800">
-                    {courses.find(c => c.course_id === selectedCourse)?.name} - 
-                    {courses.find(c => c.course_id === selectedCourse)?.faculty}
+                    {getCoursesWithCareers().find(c => c.course_id === selectedCourse)?.name} - 
+                    {getCoursesWithCareers().find(c => c.course_id === selectedCourse)?.faculty}
                   </p>
                   <p className="text-sm text-blue-600 mt-1">
                     {courseCareers.length} career(s) available for this course
@@ -300,36 +307,7 @@ const CareerPlanning = () => {
           </CardContent>
         </Card>
 
-        {/* Student Interests Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="w-5 h-5" />
-              Your Interests
-            </CardTitle>
-            <CardDescription>
-              Add your interests to get personalized career recommendations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2 mb-4">
-              <Input
-                placeholder="Add an interest (e.g., technology, medicine, art)"
-                value={newInterest}
-                onChange={(e) => setNewInterest(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addInterest()}
-              />
-              <Button onClick={addInterest}>Add</Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {studentInterests.map((interest, index) => (
-                <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeInterest(interest)}>
-                  {interest} ×
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+       
 
         {/* Search and Filters */}
         <Card className="mb-8">
@@ -374,10 +352,10 @@ const CareerPlanning = () => {
         <Tabs value={selectedTab} onValueChange={handleTabChange} className="mb-8">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="all">All Careers</TabsTrigger>
-            <TabsTrigger value="course-based">Course-Based</TabsTrigger>
+
             <TabsTrigger value="recommended">Recommended</TabsTrigger>
             <TabsTrigger value="high-demand">High Demand</TabsTrigger>
-            <TabsTrigger value="high-salary">High Salary</TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="all" className="mt-6">
@@ -393,7 +371,7 @@ const CareerPlanning = () => {
               <div className="space-y-6">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h3 className="font-medium text-blue-900 mb-2">
-                    Careers for {courses.find(c => c.course_id === selectedCourse)?.name}
+                    Careers for {getCoursesWithCareers().find(c => c.course_id === selectedCourse)?.name}
                   </h3>
                   <p className="text-blue-800 text-sm">
                     {courseCareers.length} career(s) available for this course
@@ -528,8 +506,12 @@ const CareerCard = ({ career }: { career: Career }) => {
           </div>
 
           <div className="pt-2">
-            <Button variant="outline" className="w-full">
-              View Details
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.open(career.learn_more_url, '_blank')}
+            >
+              Learn More
             </Button>
           </div>
         </div>
