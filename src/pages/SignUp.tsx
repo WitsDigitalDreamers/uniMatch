@@ -7,9 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, GraduationCap, Users, BookOpen, Award, ArrowLeft } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Loader2, GraduationCap, Users, BookOpen, Award, ArrowLeft, Check, ChevronsUpDown, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { schools } from '@/data/mockData';
+import { cn } from '@/lib/utils';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -34,7 +37,28 @@ const SignUp = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [schoolSearchOpen, setSchoolSearchOpen] = useState(false);
+  const [subjectSearchOpen, setSubjectSearchOpen] = useState(false);
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [customSchoolData, setCustomSchoolData] = useState({
+    name: '',
+    province: '',
+    type: 'Public'
+  });
   const { signup, isAuthenticated } = useAuth();
+
+  // Get selected school info
+  const selectedSchool = schools.find(school => school.school_id === formData.schoolId);
+  const isCustomSchool = formData.schoolId === 'CUSTOM';
+  const showAcademicMarks = isCustomSchool || (selectedSchool && !selectedSchool.is_partner);
+
+  // Available subjects
+  const availableSubjects = [
+    'Mathematics', 'English', 'Physical Sciences', 'Life Sciences', 
+    'Accounting', 'Economics', 'Geography', 'History', 'Business Studies',
+    'Computer Applications Technology', 'Engineering Graphics and Design',
+    'Visual Arts', 'Music', 'Drama', 'Tourism', 'Hospitality Studies'
+  ];
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -50,6 +74,12 @@ const SignUp = () => {
           [markField]: value
         }
       }));
+    } else if (field.startsWith('customSchool.')) {
+      const customField = field.split('.')[1];
+      setCustomSchoolData(prev => ({
+        ...prev,
+        [customField]: value
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -64,6 +94,12 @@ const SignUp = () => {
         !formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || 
         !formData.schoolId) {
       setError('Please fill in all required fields');
+      return false;
+    }
+
+    // Check custom school fields if custom school is selected
+    if (isCustomSchool && (!customSchoolData.name.trim() || !customSchoolData.province.trim())) {
+      setError('Please fill in your school name and province');
       return false;
     }
 
@@ -246,19 +282,155 @@ const SignUp = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="schoolId">School *</Label>
-                    <Select value={formData.schoolId} onValueChange={(value) => handleInputChange('schoolId', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your school" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {schools.map(school => (
-                          <SelectItem key={school.school_id} value={school.school_id}>
-                            {school.name} ({school.province})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={schoolSearchOpen} onOpenChange={setSchoolSearchOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={schoolSearchOpen}
+                          className="w-full justify-between"
+                        >
+                          {formData.schoolId === 'CUSTOM'
+                            ? "My school is not listed"
+                            : formData.schoolId
+                            ? schools.find((school) => school.school_id === formData.schoolId)?.name
+                            : "Select your school..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Search schools..." />
+                          <CommandList>
+                            <CommandEmpty>No school found.</CommandEmpty>
+                            <CommandGroup>
+                              {schools.map((school) => (
+                                <CommandItem
+                                  key={school.school_id}
+                                  value={`${school.name} ${school.province} ${school.type}`}
+                                  onSelect={() => {
+                                    handleInputChange('schoolId', school.school_id);
+                                    setSchoolSearchOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      formData.schoolId === school.school_id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{school.name}</span>
+                                    <span className="text-sm text-muted-foreground">
+                                      {school.province} • {school.type}
+                                      {school.is_partner && (
+                                        <span className="ml-2 text-green-600 font-medium">• Partner School</span>
+                                      )}
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                              <CommandItem
+                                value="My school is not listed"
+                                onSelect={() => {
+                                  handleInputChange('schoolId', 'CUSTOM');
+                                  setSchoolSearchOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    formData.schoolId === 'CUSTOM' ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-primary">My school is not listed</span>
+                                  <span className="text-sm text-muted-foreground">
+                                    Enter your school details manually
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    
+                    {selectedSchool && (
+                      <div className="text-sm text-muted-foreground">
+                        {selectedSchool.is_partner ? (
+                          <span className="text-green-600">✓ Partner school - Academic records will be automatically retrieved</span>
+                        ) : (
+                          <span className="text-orange-600">⚠ Non-partner school - Please enter your academic marks manually</span>
+                        )}
+                      </div>
+                    )}
+                    
+                    {isCustomSchool && (
+                      <div className="text-sm text-orange-600">
+                        ⚠ Custom school - Please enter your academic marks manually
+                      </div>
+                    )}
                   </div>
+
+                  {/* Custom School Input Form */}
+                  {isCustomSchool && (
+                    <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                      <h4 className="font-medium text-foreground">School Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="customSchoolName">School Name *</Label>
+                          <Input
+                            id="customSchoolName"
+                            type="text"
+                            placeholder="Enter your school name"
+                            value={customSchoolData.name}
+                            onChange={(e) => handleInputChange('customSchool.name', e.target.value)}
+                            disabled={isLoading}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="customSchoolProvince">Province *</Label>
+                          <Select 
+                            value={customSchoolData.province} 
+                            onValueChange={(value) => handleInputChange('customSchool.province', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select province" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Western Cape">Western Cape</SelectItem>
+                              <SelectItem value="Gauteng">Gauteng</SelectItem>
+                              <SelectItem value="KwaZulu-Natal">KwaZulu-Natal</SelectItem>
+                              <SelectItem value="Eastern Cape">Eastern Cape</SelectItem>
+                              <SelectItem value="Free State">Free State</SelectItem>
+                              <SelectItem value="Mpumalanga">Mpumalanga</SelectItem>
+                              <SelectItem value="Limpopo">Limpopo</SelectItem>
+                              <SelectItem value="North West">North West</SelectItem>
+                              <SelectItem value="Northern Cape">Northern Cape</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="customSchoolType">School Type</Label>
+                        <Select 
+                          value={customSchoolData.type} 
+                          onValueChange={(value) => handleInputChange('customSchool.type', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select school type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Public">Public</SelectItem>
+                            <SelectItem value="Private">Private</SelectItem>
+                            <SelectItem value="Technical">Technical</SelectItem>
+                            <SelectItem value="International">International</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Account Information */}
@@ -316,33 +488,116 @@ const SignUp = () => {
                   </div>
                 </div>
 
-                {/* Academic Marks */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-foreground">Academic Marks (Optional)</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Enter your marks to get personalized course recommendations
-                  </p>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(formData.marks).map(([subject, value]) => (
-                      <div key={subject} className="space-y-2">
-                        <Label htmlFor={subject} className="capitalize">
-                          {subject.replace('_', ' ')}
-                        </Label>
-                        <Input
-                          id={subject}
-                          type="number"
-                          placeholder="0-100"
-                          min="0"
-                          max="100"
-                          value={value}
-                          onChange={(e) => handleInputChange(`marks.${subject}`, e.target.value)}
-                          disabled={isLoading}
-                        />
-                      </div>
-                    ))}
+                {/* Academic Marks - Only show for non-partner schools */}
+                {showAcademicMarks && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-foreground">Academic Marks</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Since your school is not a partner, please enter your marks manually to get personalized course recommendations
+                    </p>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {Object.entries(formData.marks).map(([subject, value]) => (
+                        <div key={subject} className="space-y-2">
+                          <Label htmlFor={subject} className="capitalize">
+                            {subject.replace('_', ' ')}
+                          </Label>
+                          <Input
+                            id={subject}
+                            type="number"
+                            placeholder="0-100"
+                            min="0"
+                            max="100"
+                            value={value}
+                            onChange={(e) => handleInputChange(`marks.${subject}`, e.target.value)}
+                            disabled={isLoading}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Subject Selection - Only show for non-partner schools */}
+                {showAcademicMarks && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-foreground">Additional Subjects (Optional)</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Select any additional subjects you're taking
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <Label>Selected Subjects</Label>
+                      <Popover open={subjectSearchOpen} onOpenChange={setSubjectSearchOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={subjectSearchOpen}
+                            className="w-full justify-between"
+                          >
+                            <Search className="mr-2 h-4 w-4" />
+                            {selectedSubjects.length > 0 
+                              ? `${selectedSubjects.length} subject(s) selected`
+                              : "Select additional subjects..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput placeholder="Search subjects..." />
+                            <CommandList>
+                              <CommandEmpty>No subject found.</CommandEmpty>
+                              <CommandGroup>
+                                {availableSubjects.map((subject) => (
+                                  <CommandItem
+                                    key={subject}
+                                    value={subject}
+                                    onSelect={() => {
+                                      setSelectedSubjects(prev => 
+                                        prev.includes(subject)
+                                          ? prev.filter(s => s !== subject)
+                                          : [...prev, subject]
+                                      );
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        selectedSubjects.includes(subject) ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {subject}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      
+                      {selectedSubjects.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {selectedSubjects.map((subject) => (
+                            <div
+                              key={subject}
+                              className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-sm"
+                            >
+                              {subject}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedSubjects(prev => prev.filter(s => s !== subject))}
+                                className="ml-1 hover:text-primary/70"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {error && (
                   <Alert variant="destructive">

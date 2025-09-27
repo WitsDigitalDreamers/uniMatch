@@ -23,6 +23,7 @@ export interface School {
   name: string;
   province: string;
   type: string;
+  is_partner: boolean;
 }
 
 export interface University {
@@ -103,19 +104,57 @@ export const schools: School[] = [
     school_id: "SCH001",
     name: "Cape Town High School",
     province: "Western Cape",
-    type: "Public"
+    type: "Public",
+    is_partner: true
   },
   {
     school_id: "SCH002", 
     name: "Johannesburg College",
     province: "Gauteng",
-    type: "Private"
+    type: "Private",
+    is_partner: true
   },
   {
     school_id: "SCH003",
     name: "Durban Technical High",
     province: "KwaZulu-Natal", 
-    type: "Technical"
+    type: "Technical",
+    is_partner: false
+  },
+  {
+    school_id: "SCH004",
+    name: "Pretoria Boys High School",
+    province: "Gauteng",
+    type: "Public",
+    is_partner: true
+  },
+  {
+    school_id: "SCH005",
+    name: "St. Mary's School",
+    province: "Western Cape",
+    type: "Private",
+    is_partner: false
+  },
+  {
+    school_id: "SCH006",
+    name: "Port Elizabeth High School",
+    province: "Eastern Cape",
+    type: "Public",
+    is_partner: true
+  },
+  {
+    school_id: "SCH007",
+    name: "Bloemfontein Technical College",
+    province: "Free State",
+    type: "Technical",
+    is_partner: false
+  },
+  {
+    school_id: "SCH008",
+    name: "Nelspruit Secondary School",
+    province: "Mpumalanga",
+    type: "Public",
+    is_partner: true
   }
 ];
 
