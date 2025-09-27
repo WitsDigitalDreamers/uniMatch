@@ -16,6 +16,19 @@ export interface Student {
     geography: number;
     history: number;
   };
+  preferred_residences?: string[]; // Array of residence IDs
+  quiz_answers?: {
+    study_habits: number; // 1-5 scale
+    cleanliness: number; // 1-5 scale
+    social_level: number; // 1-5 scale
+    sleep_schedule: number; // 1-3 scale (early, normal, late)
+    music_tolerance: number; // 1-5 scale
+    party_frequency: number; // 1-5 scale
+    smoking_preference: number; // 1-3 scale (non-smoker, occasional, regular)
+    pet_preference: number; // 1-3 scale (no pets, okay with pets, want pets)
+    hobbies: string[]; // Array of hobby strings
+    interests: string[]; // Array of interest strings
+  };
 }
 
 export interface School {
@@ -647,4 +660,123 @@ export const checkCourseEligibility = (student: Student, course: Course): { elig
     eligible: missing.length === 0,
     missing
   };
+};
+
+// Room Matching Algorithm
+export const calculateCompatibilityScore = (student1: Student, student2: Student): number => {
+  if (!student1.quiz_answers || !student2.quiz_answers) {
+    return 0;
+  }
+
+  const answers1 = student1.quiz_answers;
+  const answers2 = student2.quiz_answers;
+
+  let score = 0;
+  let totalWeight = 0;
+
+  // Lifestyle compatibility (weighted)
+  const lifestyleFactors = [
+    { field: 'study_habits', weight: 2 },
+    { field: 'cleanliness', weight: 3 },
+    { field: 'social_level', weight: 2 },
+    { field: 'sleep_schedule', weight: 3 },
+    { field: 'music_tolerance', weight: 1 },
+    { field: 'party_frequency', weight: 2 },
+    { field: 'smoking_preference', weight: 3 },
+    { field: 'pet_preference', weight: 1 }
+  ];
+
+  lifestyleFactors.forEach(({ field, weight }) => {
+    const value1 = answers1[field as keyof typeof answers1] as number;
+    const value2 = answers2[field as keyof typeof answers2] as number;
+    
+    if (value1 && value2) {
+      const difference = Math.abs(value1 - value2);
+      const maxDifference = field === 'sleep_schedule' || field === 'smoking_preference' || field === 'pet_preference' ? 2 : 4;
+      const compatibility = 1 - (difference / maxDifference);
+      score += compatibility * weight;
+      totalWeight += weight;
+    }
+  });
+
+  // Hobbies and interests compatibility
+  const hobbyScore = calculateArrayCompatibility(answers1.hobbies, answers2.hobbies);
+  const interestScore = calculateArrayCompatibility(answers1.interests, answers2.interests);
+  
+  score += hobbyScore * 1.5;
+  score += interestScore * 1.5;
+  totalWeight += 3;
+
+  return totalWeight > 0 ? (score / totalWeight) * 100 : 0;
+};
+
+const calculateArrayCompatibility = (arr1: string[], arr2: string[]): number => {
+  if (arr1.length === 0 && arr2.length === 0) return 1;
+  if (arr1.length === 0 || arr2.length === 0) return 0;
+  
+  const intersection = arr1.filter(item => arr2.includes(item));
+  const union = [...new Set([...arr1, ...arr2])];
+  
+  return intersection.length / union.length;
+};
+
+export const findBestRoommate = (student: Student, allStudents: Student[]): { student: Student; score: number } | null => {
+  const otherStudents = allStudents.filter(s => s.id_number !== student.id_number);
+  if (otherStudents.length === 0) return null;
+
+  let bestMatch = null;
+  let bestScore = 0;
+
+  otherStudents.forEach(otherStudent => {
+    const score = calculateCompatibilityScore(student, otherStudent);
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = otherStudent;
+    }
+  });
+
+  return bestMatch ? { student: bestMatch, score: bestScore } : null;
+};
+
+export const findRoomGroup = (students: Student[], roomSize: number = 2): Student[][] => {
+  const groups: Student[][] = [];
+  const used = new Set<string>();
+
+  students.forEach(student => {
+    if (used.has(student.id_number)) return;
+
+    const group = [student];
+    used.add(student.id_number);
+
+    // Find compatible students for this group
+    while (group.length < roomSize) {
+      let bestMatch = null;
+      let bestScore = 0;
+
+      students.forEach(otherStudent => {
+        if (used.has(otherStudent.id_number)) return;
+
+        // Calculate average compatibility with current group
+        const avgCompatibility = group.reduce((sum, groupMember) => {
+          return sum + calculateCompatibilityScore(otherStudent, groupMember);
+        }, 0) / group.length;
+
+        if (avgCompatibility > bestScore) {
+          bestScore = avgCompatibility;
+          bestMatch = otherStudent;
+        }
+      });
+
+      if (bestMatch) {
+        group.push(bestMatch);
+        used.add(bestMatch.id_number);
+      } else {
+        break; // No more compatible students
+      }
+    }
+
+    groups.push(group);
+  });
+
+  return groups;
 };

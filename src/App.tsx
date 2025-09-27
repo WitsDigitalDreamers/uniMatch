@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
 import Offers from "./pages/Offers";
 import Scholarships from "./pages/Scholarships";
+import RoomMatching from "./pages/RoomMatching";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const AppRoutes = () => {
         <Route path="/courses" element={<Courses />} />
         <Route path="/offers" element={<Offers />} />
         <Route path="/scholarships" element={<Scholarships />} />
+        <Route path="/room-matching" element={<RoomMatching />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

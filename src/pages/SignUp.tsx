@@ -11,7 +11,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Loader2, GraduationCap, Users, BookOpen, Award, ArrowLeft, Check, ChevronsUpDown, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { schools } from '@/data/mockData';
+import { schools, residences } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 
 const SignUp = () => {
@@ -40,6 +40,7 @@ const SignUp = () => {
   const [schoolSearchOpen, setSchoolSearchOpen] = useState(false);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [subjectMarks, setSubjectMarks] = useState<Record<string, string>>({});
+  const [selectedResidences, setSelectedResidences] = useState<string[]>([]);
   const [customSchoolData, setCustomSchoolData] = useState({
     name: '',
     province: '',
@@ -108,6 +109,16 @@ const SignUp = () => {
       delete newMarks[subject];
       return newMarks;
     });
+  };
+
+  const addResidence = (residenceId: string) => {
+    if (!selectedResidences.includes(residenceId)) {
+      setSelectedResidences(prev => [...prev, residenceId]);
+    }
+  };
+
+  const removeResidence = (residenceId: string) => {
+    setSelectedResidences(prev => prev.filter(r => r !== residenceId));
   };
 
   const validateForm = () => {
@@ -200,7 +211,8 @@ const SignUp = () => {
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
-        marks: allMarks
+        marks: allMarks,
+        preferred_residences: selectedResidences
       });
 
       if (success) {
@@ -592,6 +604,65 @@ const SignUp = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Residence Selection */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">Preferred Residences (Optional)</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Select your preferred residences for accommodation. You can choose multiple options.
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <Label>Add Residence</Label>
+                    <Select onValueChange={addResidence}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a residence to add..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {residences
+                          .filter(residence => !selectedResidences.includes(residence.residence_id))
+                          .map((residence) => (
+                            <SelectItem key={residence.residence_id} value={residence.residence_id}>
+                              {residence.name} - {residence.location} (R{residence.price_per_month}/month)
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {selectedResidences.length > 0 && (
+                    <div className="space-y-3">
+                      <Label>Selected Residences</Label>
+                      {selectedResidences.map((residenceId) => {
+                        const residence = residences.find(r => r.residence_id === residenceId);
+                        if (!residence) return null;
+                        
+                        return (
+                          <div key={residenceId} className="flex items-center gap-3 p-3 border rounded-lg">
+                            <div className="flex-1">
+                              <div className="font-medium">{residence.name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {residence.location} • {residence.gender} • R{residence.price_per_month}/month
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                Annual: R{residence.estimated_annual_cost.toLocaleString()}
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeResidence(residenceId)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
 
                 {error && (
                   <Alert variant="destructive">

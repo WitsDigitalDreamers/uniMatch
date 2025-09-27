@@ -108,9 +108,25 @@ const Courses = () => {
     const handleApply = () => {
       if (!isApplied) {
         setAppliedCourses(prev => [...prev, course.course_id]);
+        
+        // Get student's preferred residences for this university
+        const universityResidences = student.preferred_residences?.filter(residenceId => {
+          const residence = residences.find(r => r.residence_id === residenceId);
+          return residence && residence.university_id === course.university_id;
+        }) || [];
+        
+        const residenceNames = universityResidences.map(residenceId => {
+          const residence = residences.find(r => r.residence_id === residenceId);
+          return residence?.name;
+        }).filter(Boolean);
+        
+        const residenceText = residenceNames.length > 0 
+          ? ` Preferred residences: ${residenceNames.join(', ')}.`
+          : '';
+        
         toast({
           title: "Application Complete",
-          description: `Your application for ${course.name} has been submitted successfully.`,
+          description: `Your application for ${course.name} has been submitted successfully.${residenceText}`,
           variant: "default",
         });
       }

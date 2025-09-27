@@ -8,7 +8,8 @@ import {
   Mail, 
   Award, 
   LogOut,
-  User
+  User,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +22,7 @@ const Layout = () => {
     { name: 'Courses', href: '/courses', icon: BookOpen },
     { name: 'My Offers', href: '/offers', icon: Mail },
     { name: 'Scholarships', href: '/scholarships', icon: Award },
+    { name: 'Room Matching', href: '/room-matching', icon: Users },
   ];
 
   const handleLogout = () => {

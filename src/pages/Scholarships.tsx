@@ -268,11 +268,7 @@ const Scholarships = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success">{eligibleBursaries.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {eligibleBursaries.reduce((total, b) => total + b.amount, 0) > 0 && 
-                `Worth ${formatAmount(eligibleBursaries.reduce((total, b) => total + b.amount, 0))}`
-              }
-            </p>
+           
           </CardContent>
         </Card>
 
