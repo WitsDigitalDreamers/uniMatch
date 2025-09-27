@@ -1,4 +1,5 @@
 import { Student } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 export interface Offer {
   offer_id: string;
@@ -32,23 +33,21 @@ export interface Application {
 }
 
 class OffersService {
-  private readonly STORAGE_KEY_OFFERS = 'unimatch_offers';
-  private readonly STORAGE_KEY_APPLICATIONS = 'unimatch_applications';
 
   // Generate offers based on applications
-  generateOffersFromApplications(student: Student): Offer[] {
-    const applications = this.getApplications(student.id_number);
+  async generateOffersFromApplications(student: Student): Promise<Offer[]> {
+    const applications = await this.getApplications(student.id_number);
     const offers: Offer[] = [];
 
-    applications.forEach(application => {
+    for (const application of applications) {
       // Simulate offer generation logic
       const shouldReceiveOffer = this.shouldGenerateOffer(student, application);
       
       if (shouldReceiveOffer) {
-        const offer = this.createOffer(student, application);
+        const offer = await this.createOffer(student, application);
         offers.push(offer);
       }
-    });
+    }
 
     return offers;
   }
@@ -76,13 +75,12 @@ class OffersService {
   }
 
   // Create an offer from an application
-  private createOffer(student: Student, application: Application): Offer {
+  private async createOffer(student: Student, application: Application): Promise<Offer> {
     const now = new Date();
     const expiryDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
     const acceptanceDeadline = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days
 
-    return {
-      offer_id: `offer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    const offerData = {
       student_id: student.id_number,
       course_id: application.course_id,
       university_id: application.university_id,
@@ -93,10 +91,41 @@ class OffersService {
       offer_conditions: this.generateOfferConditions(student, application),
       expiry_date: expiryDate.toISOString().split('T')[0],
       acceptance_deadline: acceptanceDeadline.toISOString().split('T')[0],
-      offer_status: 'Active',
-      created_at: now.toISOString(),
-      updated_at: now.toISOString()
+      offer_status: 'Active' as const
     };
+
+    try {
+      const { data, error } = await supabase
+        .from('offers')
+        .insert(offerData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating offer:', error);
+        throw error;
+      }
+
+      return {
+        offer_id: data.offer_id,
+        student_id: data.student_id,
+        course_id: data.course_id,
+        university_id: data.university_id,
+        course_name: data.course_name,
+        university_name: data.university_name,
+        university_location: data.university_location,
+        offer_type: data.offer_type,
+        offer_conditions: data.offer_conditions,
+        expiry_date: data.expiry_date,
+        acceptance_deadline: data.acceptance_deadline,
+        offer_status: data.offer_status,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
+    } catch (error) {
+      console.error('Error creating offer:', error);
+      throw error;
+    }
   }
 
   // Determine offer type based on student profile
@@ -145,103 +174,155 @@ class OffersService {
     return totalPoints;
   }
 
-  // Store offers in localStorage
-  saveOffers(studentId: string, offers: Offer[]): void {
-    const existingOffers = this.getAllOffers();
-    const updatedOffers = {
-      ...existingOffers,
-      [studentId]: offers
-    };
-    localStorage.setItem(this.STORAGE_KEY_OFFERS, JSON.stringify(updatedOffers));
-  }
+  // Get offers for a specific student from database
+  async getOffers(studentId: string): Promise<Offer[]> {
+    try {
+      const { data, error } = await supabase
+        .from('offers')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false });
 
-  // Get offers for a specific student
-  getOffers(studentId: string): Offer[] {
-    const allOffers = this.getAllOffers();
-    return allOffers[studentId] || [];
-  }
+      if (error) {
+        console.error('Error fetching offers:', error);
+        return [];
+      }
 
-  // Get all offers from localStorage
-  private getAllOffers(): Record<string, Offer[]> {
-    const stored = localStorage.getItem(this.STORAGE_KEY_OFFERS);
-    return stored ? JSON.parse(stored) : {};
-  }
-
-  // Update offer status
-  updateOfferStatus(studentId: string, offerId: string, status: Offer['offer_status']): boolean {
-    const offers = this.getOffers(studentId);
-    const offerIndex = offers.findIndex(offer => offer.offer_id === offerId);
-    
-    if (offerIndex !== -1) {
-      offers[offerIndex].offer_status = status;
-      offers[offerIndex].updated_at = new Date().toISOString();
-      this.saveOffers(studentId, offers);
-      return true;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching offers:', error);
+      return [];
     }
-    
-    return false;
   }
 
-  // Store applications in localStorage
-  saveApplications(studentId: string, applications: Application[]): void {
-    const existingApplications = this.getAllApplications();
-    const updatedApplications = {
-      ...existingApplications,
-      [studentId]: applications
-    };
-    localStorage.setItem(this.STORAGE_KEY_APPLICATIONS, JSON.stringify(updatedApplications));
-  }
+  // Update offer status in database
+  async updateOfferStatus(studentId: string, offerId: string, status: Offer['offer_status']): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('offers')
+        .update({ 
+          offer_status: status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('offer_id', offerId)
+        .eq('student_id', studentId);
 
-  // Get applications for a specific student
-  getApplications(studentId: string): Application[] {
-    const allApplications = this.getAllApplications();
-    return allApplications[studentId] || [];
-  }
+      if (error) {
+        console.error('Error updating offer status:', error);
+        return false;
+      }
 
-  // Get all applications from localStorage
-  private getAllApplications(): Record<string, Application[]> {
-    const stored = localStorage.getItem(this.STORAGE_KEY_APPLICATIONS);
-    return stored ? JSON.parse(stored) : {};
-  }
-
-  // Add new application
-  addApplication(studentId: string, application: Omit<Application, 'application_id' | 'application_date'>): void {
-    const applications = this.getApplications(studentId);
-    const newApplication: Application = {
-      ...application,
-      application_id: `app_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      application_date: new Date().toISOString()
-    };
-    
-    applications.push(newApplication);
-    this.saveApplications(studentId, applications);
-  }
-
-  // Update application status
-  updateApplicationStatus(studentId: string, applicationId: string, status: Application['application_status']): boolean {
-    const applications = this.getApplications(studentId);
-    const applicationIndex = applications.findIndex(app => app.application_id === applicationId);
-    
-    if (applicationIndex !== -1) {
-      applications[applicationIndex].application_status = status;
-      applications[applicationIndex].decision_date = new Date().toISOString();
-      this.saveApplications(studentId, applications);
       return true;
+    } catch (error) {
+      console.error('Error updating offer status:', error);
+      return false;
     }
-    
-    return false;
   }
 
-  // Clear all data for a student
-  clearStudentData(studentId: string): void {
-    const allOffers = this.getAllOffers();
-    const allApplications = this.getAllApplications();
-    
-    delete allOffers[studentId];
-    delete allApplications[studentId];
-    
-    localStorage.setItem(this.STORAGE_KEY_OFFERS, JSON.stringify(allOffers));
-    localStorage.setItem(this.STORAGE_KEY_APPLICATIONS, JSON.stringify(allApplications));
+  // Get applications for a specific student from database
+  async getApplications(studentId: string): Promise<Application[]> {
+    try {
+      const { data, error } = await supabase
+        .from('student_applications')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('application_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching applications:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching applications:', error);
+      return [];
+    }
+  }
+
+  // Add new application to database
+  async addApplication(studentId: string, application: Omit<Application, 'application_id' | 'application_date'>): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('student_applications')
+        .insert({
+          student_id: studentId,
+          course_id: application.course_id,
+          university_id: application.university_id,
+          course_name: application.course_name,
+          university_name: application.university_name,
+          university_location: application.university_location,
+          application_status: application.application_status,
+          notes: application.notes
+        });
+
+      if (error) {
+        console.error('Error adding application:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error adding application:', error);
+      return false;
+    }
+  }
+
+  // Update application status in database
+  async updateApplicationStatus(studentId: string, applicationId: string, status: Application['application_status']): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('student_applications')
+        .update({ 
+          application_status: status,
+          decision_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('application_id', applicationId)
+        .eq('student_id', studentId);
+
+      if (error) {
+        console.error('Error updating application status:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      return false;
+    }
+  }
+
+  // Clear all data for a student from database
+  async clearStudentData(studentId: string): Promise<boolean> {
+    try {
+      // Delete offers
+      const { error: offersError } = await supabase
+        .from('offers')
+        .delete()
+        .eq('student_id', studentId);
+
+      if (offersError) {
+        console.error('Error clearing offers:', offersError);
+        return false;
+      }
+
+      // Delete applications
+      const { error: applicationsError } = await supabase
+        .from('student_applications')
+        .delete()
+        .eq('student_id', studentId);
+
+      if (applicationsError) {
+        console.error('Error clearing applications:', applicationsError);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error clearing student data:', error);
+      return false;
+    }
   }
 
   // Generate sample applications for demo purposes - REMOVED

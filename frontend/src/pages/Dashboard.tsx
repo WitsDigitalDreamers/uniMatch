@@ -1,14 +1,20 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { 
   GraduationCap, 
   School, 
   TrendingUp, 
   Award,
   BookOpen,
-  Mail
+  Mail,
+  FileText,
+  CheckCircle,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { 
   schools, 
@@ -18,9 +24,29 @@ import {
   calculateAPS, 
   checkCourseEligibility 
 } from '@/data/mockData';
+import { offersService, Application } from '@/services/offersService';
 
 const Dashboard = () => {
   const { student } = useAuth();
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadApplications = async () => {
+      if (student) {
+        try {
+          const studentApplications = await offersService.getApplications(student.id_number);
+          setApplications(studentApplications);
+        } catch (error) {
+          console.error('Error loading applications:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadApplications();
+  }, [student]);
   
   if (!student) return null;
 
@@ -45,6 +71,13 @@ const Dashboard = () => {
   const sortedMarks = Object.entries(student.marks)
     .sort(([,a], [,b]) => b - a)
     .slice(0, 5);
+
+  // Application statistics
+  const acceptedApplications = applications.filter(app => app.application_status === 'Accepted');
+  const pendingApplications = applications.filter(app => 
+    app.application_status === 'Pending' || app.application_status === 'Under Review'
+  );
+  const waitlistedApplications = applications.filter(app => app.application_status === 'Waitlisted');
 
   return (
     <div className="space-y-8">
@@ -112,6 +145,8 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+    
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Student Profile */}

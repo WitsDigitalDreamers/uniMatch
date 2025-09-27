@@ -142,11 +142,13 @@ const Courses = () => {
       };
       
       // Add application to service
-      offersService.addApplication(student.id_number, application);
+      const applicationSuccess = await offersService.addApplication(student.id_number, application);
       
-      // Generate offers based on the application
-      const offers = offersService.generateOffersFromApplications(student);
-      offersService.saveOffers(student.id_number, offers);
+      if (applicationSuccess) {
+        // Generate offers based on the application
+        const offers = await offersService.generateOffersFromApplications(student);
+        console.log('Generated offers:', offers);
+      }
       
       // Add to applied courses
       setAppliedCourses(prev => [...prev, selectedCourseForApplication.course_id]);
@@ -163,7 +165,7 @@ const Courses = () => {
         ? ` and ${selectedResidences.length} residence(s)`
         : '';
       
-      const offerText = offers.length > 0 ? ' You should receive an offer soon!' : '';
+      const offerText = applicationSuccess ? ' You should receive an offer soon!' : '';
       
       toast({
         title: "Application Submitted Successfully!",

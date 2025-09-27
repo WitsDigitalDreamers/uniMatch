@@ -19,18 +19,18 @@ const Offers = () => {
     }
   }, [student]);
 
-  const loadOffers = () => {
+  const loadOffers = async () => {
     if (!student) return;
     
-    const studentOffers = offersService.getOffers(student.id_number);
+    const studentOffers = await offersService.getOffers(student.id_number);
     setOffers(studentOffers);
     setLoading(false);
   };
 
-  const handleAcceptOffer = (offerId: string) => {
+  const handleAcceptOffer = async (offerId: string) => {
     if (!student) return;
     
-    const success = offersService.updateOfferStatus(student.id_number, offerId, 'Accepted');
+    const success = await offersService.updateOfferStatus(student.id_number, offerId, 'Accepted');
     if (success) {
       toast({
         title: "Offer Accepted",
@@ -46,10 +46,10 @@ const Offers = () => {
     }
   };
 
-  const handleDeclineOffer = (offerId: string) => {
+  const handleDeclineOffer = async (offerId: string) => {
     if (!student) return;
     
-    const success = offersService.updateOfferStatus(student.id_number, offerId, 'Declined');
+    const success = await offersService.updateOfferStatus(student.id_number, offerId, 'Declined');
     if (success) {
       toast({
         title: "Offer Declined",

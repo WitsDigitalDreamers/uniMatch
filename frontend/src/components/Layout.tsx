@@ -5,6 +5,7 @@ import {
   GraduationCap, 
   Home, 
   BookOpen, 
+  FileText,
   Mail, 
   Award, 
   LogOut,
@@ -18,11 +19,12 @@ import { cn } from '@/lib/utils';
 const Layout = () => {
   const { student, logout } = useAuth();
   const location = useLocation();
+  
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Courses', href: '/courses', icon: BookOpen },
-    { name: 'My Offers', href: '/offers', icon: Mail },
+    { name: 'My Applications', href: '/applications', icon: FileText },
     { name: 'Scholarships', href: '/scholarships', icon: Award },
     { name: 'Room Matching', href: '/room-matching', icon: Users },
     { name: 'Career Planning', href: '/career-planning', icon: Briefcase },

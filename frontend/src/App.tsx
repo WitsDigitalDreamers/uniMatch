@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
+import Applications from "./pages/Applications";
 import Offers from "./pages/Offers";
 import Scholarships from "./pages/Scholarships";
 import RoomMatching from "./pages/RoomMatching";
@@ -45,6 +46,7 @@ const AppRoutes = () => {
       >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<Courses />} />
+            <Route path="/applications" element={<Applications />} />
             <Route path="/offers" element={<Offers />} />
             <Route path="/scholarships" element={<Scholarships />} />
             <Route path="/room-matching" element={<RoomMatching />} />
