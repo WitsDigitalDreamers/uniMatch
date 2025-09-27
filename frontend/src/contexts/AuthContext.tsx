@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/lib/supabase';
 import { Student } from '@/types';
-import { students } from '@/data/mockData';
+import { offersService } from '@/services/offersService';
 
 interface AuthContextType {
   student: Student | null;
@@ -38,6 +39,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       try {
         const parsedStudent = JSON.parse(studentData);
         setStudent(parsedStudent);
+        
+        // Generate offers if they don't exist
+        const existingOffers = offersService.getOffers(parsedStudent.id_number);
+        if (existingOffers.length === 0) {
+          // Generate sample applications and offers
+          offersService.generateSampleApplications(parsedStudent);
+          const offers = offersService.generateOffersFromApplications(parsedStudent);
+          offersService.saveOffers(parsedStudent.id_number, offers);
+        }
       } catch (error) {
         console.error('Error parsing student data:', error);
         localStorage.removeItem('student_token');
@@ -49,68 +59,113 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const login = async (idNumber: string, username: string): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const foundStudent = students.find(
-      s => s.id_number === idNumber && s.username === username
-    );
-    
-    if (foundStudent) {
-      // Generate mock token
-      const token = `mock_token_${Date.now()}_${foundStudent.id_number}`;
+    try {
+      setIsLoading(true);
+      
+      // Query the students table to find matching student
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('id_number', idNumber)
+        .eq('username', username)
+        .single();
+
+      if (error || !data) {
+        console.error('Login error:', error?.message || 'Student not found');
+        return false;
+      }
+
+      // Generate session token
+      const token = `student_token_${Date.now()}_${data.id_number}`;
       
       // Store in localStorage
       localStorage.setItem('student_token', token);
-      localStorage.setItem('student_data', JSON.stringify(foundStudent));
+      localStorage.setItem('student_data', JSON.stringify(data));
       
-      setStudent(foundStudent);
-      setIsLoading(false);
+      setStudent(data as Student);
+      
+      // Generate offers if they don't exist
+      const existingOffers = offersService.getOffers(data.id_number);
+      if (existingOffers.length === 0) {
+        // Generate sample applications and offers
+        offersService.generateSampleApplications(data as Student);
+        const offers = offersService.generateOffersFromApplications(data as Student);
+        offersService.saveOffers(data.id_number, offers);
+      }
+      
       return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
-    return false;
   };
 
-  const signup = async (studentData: Omit<Student, 'id_number'> & { id_number: string }): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Check if student already exists
-    const existingStudent = students.find(
-      s => s.id_number === studentData.id_number || s.username === studentData.username
-    );
-    
-    if (existingStudent) {
-      setIsLoading(false);
+  const signup = async (
+    studentData: Omit<Student, 'id_number'> & { id_number: string }
+  ): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      
+      // Check if student already exists
+      const { data: existingStudent } = await supabase
+        .from('students')
+        .select('id_number, username')
+        .or(`id_number.eq.${studentData.id_number},username.eq.${studentData.username}`)
+        .single();
+
+      if (existingStudent) {
+        console.error('Student already exists with this ID or username');
+        return false;
+      }
+
+      // Create student record
+      const { data, error } = await supabase
+        .from('students')
+        .insert({
+          id_number: studentData.id_number,
+          username: studentData.username,
+          first_name: studentData.first_name,
+          last_name: studentData.last_name,
+          email: studentData.email,
+          school_id: studentData.school_id,
+          marks: studentData.marks,
+          preferred_residences: studentData.preferred_residences || [],
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Student creation error:', error);
+        return false;
+      }
+
+      if (!data) {
+        return false;
+      }
+
+      // Generate session token
+      const token = `student_token_${Date.now()}_${data.id_number}`;
+      
+      // Store in localStorage
+      localStorage.setItem('student_token', token);
+      localStorage.setItem('student_data', JSON.stringify(data));
+      
+      setStudent(data as Student);
+      
+      // Generate sample applications and offers for new student
+      offersService.generateSampleApplications(data as Student);
+      const offers = offersService.generateOffersFromApplications(data as Student);
+      offersService.saveOffers(data.id_number, offers);
+      
+      return true;
+    } catch (error) {
+      console.error('Signup error:', error);
       return false;
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Create new student
-    const newStudent: Student = {
-      ...studentData,
-      id_number: studentData.id_number
-    };
-    
-    // In a real app, this would be sent to the backend
-    // For now, we'll add it to the mock data
-    students.push(newStudent);
-    
-    // Generate mock token
-    const token = `mock_token_${Date.now()}_${newStudent.id_number}`;
-    
-    // Store in localStorage
-    localStorage.setItem('student_token', token);
-    localStorage.setItem('student_data', JSON.stringify(newStudent));
-    
-    setStudent(newStudent);
-    setIsLoading(false);
-    return true;
   };
 
   const logout = () => {

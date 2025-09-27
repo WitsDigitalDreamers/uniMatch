@@ -2,7 +2,7 @@
 export interface Student {
   id_number: string;
   username: string;
-  password: string;
+  password?: string; // Optional since it's not used in the database
   school_id: string;
   first_name: string;
   last_name: string;
@@ -69,6 +69,11 @@ export interface Course {
   estimated_cost: number;
   modules: string[];
   available_residences?: string[]; // Array of residence IDs
+  universities?: {
+    name: string;
+    location: string;
+    province: string;
+  };
 }
 
 // Offer Interface
@@ -115,6 +120,11 @@ export interface Residence {
     phone: string;
     email: string;
   };
+  universities?: {
+    name: string;
+    location: string;
+    province: string;
+  };
 }
 
 // Career Interface
@@ -122,16 +132,20 @@ export interface Career {
   career_id: string;
   name: string;
   description: string;
-  category: string;
-  required_courses: string[]; // Array of course IDs
-  alternative_courses: string[]; // Array of course IDs
+  required_courses: string[];
   skills_required: string[];
-  average_salary: {
-    entry_level: number;
-    mid_level: number;
-    senior_level: number;
-  };
-  job_market_outlook: 'excellent' | 'good' | 'moderate' | 'limited';
-  growth_rate: number; // Percentage growth expected
-  learn_more_url: string; // URL for learning more about the career
+  average_salary_entry: number;
+  average_salary_mid: number;
+  average_salary_senior: number;
+  job_market_outlook: 'High demand' | 'Moderate demand' | 'Low demand';
+  growth_prospects: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  education_requirements: string;
+  experience_requirements: string;
+  work_environment: string;
+  career_path: string[];
+  related_careers: string[];
+  industry: string;
+  work_life_balance: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  job_security: 'High' | 'Medium' | 'Low';
+  advancement_opportunities: 'Excellent' | 'Good' | 'Fair' | 'Poor';
 }

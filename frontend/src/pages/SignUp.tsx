@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Loader2, GraduationCap, Users, BookOpen, Award, ArrowLeft, Check, ChevronsUpDown, Search } from 'lucide-react';
+import { Loader2, GraduationCap, Users, BookOpen, Award, ArrowLeft, Check, ChevronsUpDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { schools, residences } from '@/data/mockData';
 import { cn } from '@/lib/utils';
@@ -18,8 +18,6 @@ const SignUp = () => {
   const [formData, setFormData] = useState({
     idNumber: '',
     username: '',
-    password: '',
-    confirmPassword: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -123,7 +121,7 @@ const SignUp = () => {
 
   const validateForm = () => {
     // Check required fields
-    if (!formData.idNumber.trim() || !formData.username.trim() || !formData.password.trim() || 
+    if (!formData.idNumber.trim() || !formData.username.trim() || 
         !formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || 
         !formData.schoolId) {
       setError('Please fill in all required fields');
@@ -133,18 +131,6 @@ const SignUp = () => {
     // Check custom school fields if custom school is selected
     if (isCustomSchool && (!customSchoolData.name.trim() || !customSchoolData.province.trim())) {
       setError('Please fill in your school name and province');
-      return false;
-    }
-
-    // Check password match
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return false;
-    }
-
-    // Check password length
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
       return false;
     }
 
@@ -158,6 +144,12 @@ const SignUp = () => {
     // Check ID number format (10 digits)
     if (!/^\d{10}$/.test(formData.idNumber)) {
       setError('ID number must be exactly 10 digits');
+      return false;
+    }
+
+    // Check username format (alphanumeric with dots and underscores)
+    if (!/^[a-zA-Z0-9._]+$/.test(formData.username)) {
+      setError('Username can only contain letters, numbers, dots, and underscores');
       return false;
     }
 
@@ -206,7 +198,6 @@ const SignUp = () => {
       const success = await signup({
         id_number: formData.idNumber,
         username: formData.username,
-        password: formData.password,
         school_id: formData.schoolId,
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -504,31 +495,9 @@ const SignUp = () => {
                       onChange={(e) => handleInputChange('username', e.target.value)}
                       disabled={isLoading}
                     />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password *</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="Create a password"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange('password', e.target.value)}
-                        disabled={isLoading}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        placeholder="Confirm your password"
-                        value={formData.confirmPassword}
-                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                        disabled={isLoading}
-                      />
-                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Username can contain letters, numbers, dots, and underscores
+                    </p>
                   </div>
                 </div>
 
@@ -540,11 +509,8 @@ const SignUp = () => {
                       Since your school is not a partner, please enter your marks manually to get personalized course recommendations
                     </p>
                     
-                 
-
                     {/* Additional Subjects */}
                     <div className="space-y-4">
-                     
                       <p className="text-sm text-muted-foreground">
                         Select and add marks for all the subjects you're taking
                       </p>

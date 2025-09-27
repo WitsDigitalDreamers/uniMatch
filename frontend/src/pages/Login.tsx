@@ -28,6 +28,12 @@ const Login = () => {
       return;
     }
 
+    // Validate ID number format (10 digits)
+    if (!/^\d{10}$/.test(idNumber.trim())) {
+      setError('ID number must be exactly 10 digits');
+      return;
+    }
+
     const success = await login(idNumber.trim(), username.trim());
     
     if (!success) {
@@ -111,6 +117,7 @@ const Login = () => {
                     onChange={(e) => setIdNumber(e.target.value)}
                     disabled={isLoading}
                     className="h-11"
+                    maxLength={10}
                   />
                 </div>
 
@@ -148,33 +155,6 @@ const Login = () => {
                   )}
                 </Button>
               </form>
-
-              <div className="mt-6 pt-4 border-t">
-                <p className="text-sm text-muted-foreground mb-3 text-center font-medium">
-                  Demo Credentials:
-                </p>
-                <div className="grid gap-2 text-xs">
-                  {demoCredentials.slice(0, 3).map((cred) => (
-                    <div
-                      key={cred.id}
-                      className="flex justify-between items-center p-2 rounded bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
-                      onClick={() => {
-                        setIdNumber(cred.id);
-                        setUsername(cred.username);
-                      }}
-                    >
-                      <span className="font-medium text-foreground">{cred.name}</span>
-                      <div className="text-right text-muted-foreground">
-                        <div>{cred.id}</div>
-                        <div>{cred.username}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2 text-center">
-                  Click any credential to auto-fill
-                </p>
-              </div>
 
               <div className="text-center text-sm text-muted-foreground">
                 Don't have an account?{' '}

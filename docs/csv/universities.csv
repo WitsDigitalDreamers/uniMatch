@@ -1,0 +1,51 @@
+university_id,name,location,province
+UNI001,University of Cape Town,Cape Town,Western Cape
+UNI002,University of the Witwatersrand,Johannesburg,Gauteng
+UNI003,Stellenbosch University,Stellenbosch,Western Cape
+UNI004,University of Pretoria,Pretoria,Gauteng
+UNI005,University of KwaZulu-Natal,Durban,KwaZulu-Natal
+UNI006,North-West University,Potchefstroom,North West
+UNI007,Rhodes University,Grahamstown,Eastern Cape
+UNI008,University of Johannesburg,Johannesburg,Gauteng
+UNI009,University of the Free State,Bloemfontein,Free State
+UNI010,University of Limpopo,Polokwane,Limpopo
+UNI011,University of the Western Cape,Bellville,Western Cape
+UNI012,University of Fort Hare,Alice,Eastern Cape
+UNI013,University of Venda,Thohoyandou,Limpopo
+UNI014,University of Zululand,KwaDlangezwa,KwaZulu-Natal
+UNI015,Walter Sisulu University,Mthatha,Eastern Cape
+UNI016,University of Mpumalanga,Nelspruit,Mpumalanga
+UNI017,Sol Plaatje University,Kimberley,Northern Cape
+UNI018,University of South Africa,Pretoria,Gauteng
+UNI019,University of Technology,Port Elizabeth,Eastern Cape
+UNI020,Cape Peninsula University of Technology,Cape Town,Western Cape
+UNI021,Durban University of Technology,Durban,KwaZulu-Natal
+UNI022,Tshwane University of Technology,Pretoria,Gauteng
+UNI023,Vaal University of Technology,Vanderbijlpark,Gauteng
+UNI024,Central University of Technology,Bloemfontein,Free State
+UNI025,Mangosuthu University of Technology,Umlazi,KwaZulu-Natal
+UNI026,Monash University South Africa,Johannesburg,Gauteng
+UNI027,University of Stellenbosch,Stellenbosch,Western Cape
+UNI028,University of Cape Town,Cape Town,Western Cape
+UNI029,University of the Witwatersrand,Johannesburg,Gauteng
+UNI030,University of Pretoria,Pretoria,Gauteng
+UNI031,University of South Africa,Pretoria,Gauteng
+UNI032,University of the Free State,Bloemfontein,Free State
+UNI033,University of KwaZulu-Natal,Durban,KwaZulu-Natal
+UNI034,North-West University,Potchefstroom,North West
+UNI035,Rhodes University,Grahamstown,Eastern Cape
+UNI036,University of Limpopo,Polokwane,Limpopo
+UNI037,University of the Western Cape,Bellville,Western Cape
+UNI038,University of Fort Hare,Alice,Eastern Cape
+UNI039,University of Venda,Thohoyandou,Limpopo
+UNI040,University of Zululand,KwaDlangezwa,KwaZulu-Natal
+UNI041,Walter Sisulu University,Mthatha,Eastern Cape
+UNI042,University of Mpumalanga,Nelspruit,Mpumalanga
+UNI043,Sol Plaatje University,Kimberley,Northern Cape
+UNI044,University of Technology,Port Elizabeth,Eastern Cape
+UNI045,Cape Peninsula University of Technology,Cape Town,Western Cape
+UNI046,Durban University of Technology,Durban,KwaZulu-Natal
+UNI047,Tshwane University of Technology,Pretoria,Gauteng
+UNI048,Vaal University of Technology,Vanderbijlpark,Gauteng
+UNI049,Central University of Technology,Bloemfontein,Free State
+UNI050,Mangosuthu University of Technology,Umlazi,KwaZulu-Natal

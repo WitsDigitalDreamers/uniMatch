@@ -1,0 +1,51 @@
+school_id,name,province,type,is_partner
+SCH001,St. John's College,Gauteng,Private,true
+SCH002,Hilton College,KwaZulu-Natal,Private,true
+SCH003,Bishops Diocesan College,Western Cape,Private,true
+SCH004,St. Mary's DSG,Gauteng,Private,true
+SCH005,Pretoria Boys High School,Gauteng,Public,false
+SCH006,Rondebosch Boys' High School,Western Cape,Public,false
+SCH007,Herschel Girls School,Western Cape,Private,true
+SCH008,St. Andrew's College,Eastern Cape,Private,true
+SCH009,Michaelhouse,KwaZulu-Natal,Private,true
+SCH010,King Edward VII School,Gauteng,Public,false
+SCH011,St. Stithians College,Gauteng,Private,true
+SCH012,Diocesan College (Bishops),Western Cape,Private,true
+SCH013,St. Alban's College,Gauteng,Private,true
+SCH014,St. Mary's School for Girls,Gauteng,Private,true
+SCH015,St. Peter's College,Gauteng,Private,true
+SCH016,St. David's Marist Inanda,Gauteng,Private,true
+SCH017,St. Benedict's College,Gauteng,Private,true
+SCH018,St. John's Preparatory School,Gauteng,Private,true
+SCH019,St. Mary's Preparatory School,Gauteng,Private,true
+SCH020,St. Peter's Preparatory School,Gauteng,Private,true
+SCH021,St. David's Preparatory School,Gauteng,Private,true
+SCH022,St. Benedict's Preparatory School,Gauteng,Private,true
+SCH023,St. Alban's Preparatory School,Gauteng,Private,true
+SCH024,St. Stithians Preparatory School,Gauteng,Private,true
+SCH025,St. John's College Preparatory School,Gauteng,Private,true
+SCH026,St. Mary's DSG Preparatory School,Gauteng,Private,true
+SCH027,St. Peter's College Preparatory School,Gauteng,Private,true
+SCH028,St. David's Marist Inanda Preparatory School,Gauteng,Private,true
+SCH029,St. Benedict's College Preparatory School,Gauteng,Private,true
+SCH030,St. Alban's College Preparatory School,Gauteng,Private,true
+SCH031,St. Stithians College Preparatory School,Gauteng,Private,true
+SCH032,St. John's College High School,Gauteng,Private,true
+SCH033,St. Mary's DSG High School,Gauteng,Private,true
+SCH034,St. Peter's College High School,Gauteng,Private,true
+SCH035,St. David's Marist Inanda High School,Gauteng,Private,true
+SCH036,St. Benedict's College High School,Gauteng,Private,true
+SCH037,St. Alban's College High School,Gauteng,Private,true
+SCH038,St. Stithians College High School,Gauteng,Private,true
+SCH039,St. John's College Primary School,Gauteng,Private,true
+SCH040,St. Mary's DSG Primary School,Gauteng,Private,true
+SCH041,St. Peter's College Primary School,Gauteng,Private,true
+SCH042,St. David's Marist Inanda Primary School,Gauteng,Private,true
+SCH043,St. Benedict's College Primary School,Gauteng,Private,true
+SCH044,St. Alban's College Primary School,Gauteng,Private,true
+SCH045,St. Stithians College Primary School,Gauteng,Private,true
+SCH046,St. John's College Secondary School,Gauteng,Private,true
+SCH047,St. Mary's DSG Secondary School,Gauteng,Private,true
+SCH048,St. Peter's College Secondary School,Gauteng,Private,true
+SCH049,St. David's Marist Inanda Secondary School,Gauteng,Private,true
+SCH050,St. Benedict's College Secondary School,Gauteng,Private,true

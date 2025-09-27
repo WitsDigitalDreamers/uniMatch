@@ -1,0 +1,51 @@
+bursary_id,name,provider,minimum_household_income,minimum_aps,provinces,faculties,additional_criteria,deadline
+BURS001,NSFAS Bursary,National Student Financial Aid Scheme,350000,30,"Western Cape;Gauteng;KwaZulu-Natal;Eastern Cape;Free State;Limpopo;Mpumalanga;North West;Northern Cape","All Faculties","South African Citizen;Financial Need",2024-11-30
+BURS002,SASOL Bursary,SASOL Limited,500000,35,"All Provinces","Engineering;Science;Commerce","South African Citizen;Academic Excellence",2024-10-15
+BURS003,Old Mutual Bursary,Old Mutual,400000,32,"All Provinces","Commerce;Science","South African Citizen;Leadership Potential",2024-09-30
+BURS004,Eskom Bursary,Eskom Holdings,450000,34,"All Provinces","Engineering;Science","South African Citizen;Engineering Focus",2024-08-31
+BURS005,Shoprite Bursary,Shoprite Holdings,300000,28,"All Provinces","Commerce;Science","South African Citizen;Retail Interest",2024-10-01
+BURS006,ABSA Bursary,ABSA Group,400000,32,"All Provinces","Commerce;Science","South African Citizen;Banking Interest",2024-07-31
+BURS007,Nedbank Bursary,Nedbank Group,380000,30,"All Provinces","Commerce;Science","South African Citizen;Financial Services",2024-11-15
+BURS008,MTN Bursary,MTN Group,350000,30,"All Provinces","Engineering;Science;Commerce","South African Citizen;Technology Interest",2024-12-31
+BURS009,FNB Bursary,FNB Bank,400000,32,"All Provinces","Commerce;Science","South African Citizen;Banking Career",2024-09-15
+BURS010,Standard Bank Bursary,Standard Bank Group,420000,33,"All Provinces","Commerce;Science","South African Citizen;Financial Services",2024-10-20
+BURS011,Transnet Bursary,Transnet SOC Limited,450000,34,"All Provinces","Engineering;Science","South African Citizen;Transportation",2024-08-15
+BURS012,Telkom Bursary,Telkom SA SOC Limited,380000,30,"All Provinces","Engineering;Science","South African Citizen;Telecommunications",2024-09-30
+BURS013,Anglo American Bursary,Anglo American,500000,35,"All Provinces","Engineering;Science","South African Citizen;Mining Interest",2024-07-31
+BURS014,De Beers Bursary,De Beers Group,480000,34,"All Provinces","Engineering;Science","South African Citizen;Mining Focus",2024-08-31
+BURS015,Impala Platinum Bursary,Impala Platinum Holdings,460000,33,"All Provinces","Engineering;Science","South African Citizen;Mining Career",2024-09-15
+BURS016,Exxaro Bursary,Exxaro Resources,420000,32,"All Provinces","Engineering;Science","South African Citizen;Mining Industry",2024-10-31
+BURS017,Sasol Bursary,SASOL Limited,500000,35,"All Provinces","Engineering;Science;Commerce","South African Citizen;Chemical Industry",2024-10-15
+BURS018,South32 Bursary,South32,450000,34,"All Provinces","Engineering;Science","South African Citizen;Mining Sector",2024-09-30
+BURS019,Gold Fields Bursary,Gold Fields Limited,470000,34,"All Provinces","Engineering;Science","South African Citizen;Gold Mining",2024-08-31
+BURS020,African Rainbow Minerals Bursary,African Rainbow Minerals,400000,32,"All Provinces","Engineering;Science","South African Citizen;Mining Development",2024-10-15
+BURS021,Discovery Bursary,Discovery Limited,350000,30,"All Provinces","Commerce;Science;Health Sciences","South African Citizen;Insurance Interest",2024-11-30
+BURS022,Sanlam Bursary,Sanlam Limited,400000,32,"All Provinces","Commerce;Science","South African Citizen;Financial Services",2024-09-15
+BURS023,Liberty Bursary,Liberty Holdings,380000,30,"All Provinces","Commerce;Science","South African Citizen;Insurance Career",2024-10-31
+BURS024,Investec Bursary,Investec Limited,500000,35,"All Provinces","Commerce;Science","South African Citizen;Investment Banking",2024-08-31
+BURS025,FirstRand Bursary,FirstRand Limited,450000,34,"All Provinces","Commerce;Science","South African Citizen;Banking Group",2024-09-30
+BURS026,Capitec Bursary,Capitec Bank Holdings,300000,28,"All Provinces","Commerce;Science","South African Citizen;Retail Banking",2024-11-15
+BURS027,Bidvest Bursary,Bidvest Group Limited,400000,32,"All Provinces","Commerce;Science","South African Citizen;Logistics Interest",2024-10-01
+BURS028,Imperial Bursary,Imperial Holdings,380000,30,"All Provinces","Commerce;Science","South African Citizen;Automotive Industry",2024-09-15
+BURS029,Steinhoff Bursary,Steinhoff International,300000,28,"All Provinces","Commerce;Science","South African Citizen;Retail Sector",2024-08-31
+BURS030,Tiger Brands Bursary,Tiger Brands Limited,350000,30,"All Provinces","Commerce;Science","South African Citizen;FMCG Industry",2024-10-31
+BURS031,Distell Bursary,Distell Group Limited,380000,30,"All Provinces","Commerce;Science","South African Citizen;Beverage Industry",2024-09-30
+BURS032,SAB Bursary,South African Breweries,400000,32,"All Provinces","Commerce;Science","South African Citizen;Brewing Industry",2024-08-15
+BURS033,Unilever Bursary,Unilever South Africa,420000,33,"All Provinces","Commerce;Science","South African Citizen;Consumer Goods",2024-10-01
+BURS034,Nestlé Bursary,Nestlé South Africa,400000,32,"All Provinces","Commerce;Science","South African Citizen;Food Industry",2024-09-15
+BURS035,Procter & Gamble Bursary,Procter & Gamble,450000,34,"All Provinces","Commerce;Science","South African Citizen;Consumer Products",2024-11-30
+BURS036,Johnson & Johnson Bursary,Johnson & Johnson,450000,34,"All Provinces","Health Sciences;Science","South African Citizen;Healthcare Industry",2024-08-31
+BURS037,GlaxoSmithKline Bursary,GlaxoSmithKline,400000,32,"All Provinces","Health Sciences;Science","South African Citizen;Pharmaceutical Industry",2024-10-15
+BURS038,Aspen Pharmacare Bursary,Aspen Pharmacare Holdings,420000,33,"All Provinces","Health Sciences;Science","South African Citizen;Pharmaceutical Career",2024-09-30
+BURS039,Adcock Ingram Bursary,Adcock Ingram Holdings,380000,30,"All Provinces","Health Sciences;Science","South African Citizen;Pharmaceutical Sector",2024-11-15
+BURS040,Netcare Bursary,Netcare Limited,400000,32,"All Provinces","Health Sciences;Science","South African Citizen;Healthcare Services",2024-08-31
+BURS041,Life Healthcare Bursary,Life Healthcare Group,420000,33,"All Provinces","Health Sciences;Science","South African Citizen;Healthcare Career",2024-10-01
+BURS042,Mediclinic Bursary,Mediclinic International,400000,32,"All Provinces","Health Sciences;Science","South African Citizen;Private Healthcare",2024-09-15
+BURS043,Discovery Health Bursary,Discovery Health,350000,30,"All Provinces","Health Sciences;Commerce","South African Citizen;Health Insurance",2024-11-30
+BURS044,Momentum Bursary,Momentum Metropolitan Holdings,400000,32,"All Provinces","Commerce;Science","South African Citizen;Financial Services",2024-08-31
+BURS045,Outsurance Bursary,OUTsurance Holdings,350000,30,"All Provinces","Commerce;Science","South African Citizen;Insurance Sector",2024-10-15
+BURS046,Santam Bursary,Santam Limited,380000,30,"All Provinces","Commerce;Science","South African Citizen;Short-term Insurance",2024-09-30
+BURS047,Old Mutual Insure Bursary,Old Mutual Insure,400000,32,"All Provinces","Commerce;Science","South African Citizen;Insurance Industry",2024-11-15
+BURS048,Hollard Bursary,Hollard Insurance,350000,30,"All Provinces","Commerce;Science","South African Citizen;Insurance Career",2024-08-31
+BURS049,King Price Bursary,King Price Insurance,300000,28,"All Provinces","Commerce;Science","South African Citizen;Direct Insurance",2024-10-01
+BURS050,1Life Bursary,1Life Insurance,320000,29,"All Provinces","Commerce;Science","South African Citizen;Life Insurance",2024-09-15
