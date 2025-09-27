@@ -40,14 +40,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const parsedStudent = JSON.parse(studentData);
         setStudent(parsedStudent);
         
-        // Generate offers if they don't exist
-        const existingOffers = offersService.getOffers(parsedStudent.id_number);
-        if (existingOffers.length === 0) {
-          // Generate sample applications and offers
-          offersService.generateSampleApplications(parsedStudent);
-          const offers = offersService.generateOffersFromApplications(parsedStudent);
-          offersService.saveOffers(parsedStudent.id_number, offers);
-        }
+        // Offers will be generated when students actually apply for courses
       } catch (error) {
         console.error('Error parsing student data:', error);
         localStorage.removeItem('student_token');
@@ -96,14 +89,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setStudent(student as Student);
       
-      // Generate offers if they don't exist
-      const existingOffers = offersService.getOffers(student.id_number);
-      if (existingOffers.length === 0) {
-        // Generate sample applications and offers
-        offersService.generateSampleApplications(student as Student);
-        const offers = offersService.generateOffersFromApplications(student as Student);
-        offersService.saveOffers(student.id_number, offers);
-      }
+          // Offers will be generated when students actually apply for courses
       
       return true;
     } catch (error) {
@@ -166,10 +152,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setStudent(data as Student);
       
-      // Generate sample applications and offers for new student
-      offersService.generateSampleApplications(data as Student);
-      const offers = offersService.generateOffersFromApplications(data as Student);
-      offersService.saveOffers(data.id_number, offers);
+      // Offers will be generated when students actually apply for courses
       
       return true;
     } catch (error) {

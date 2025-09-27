@@ -244,36 +244,8 @@ class OffersService {
     localStorage.setItem(this.STORAGE_KEY_APPLICATIONS, JSON.stringify(allApplications));
   }
 
-  // Generate sample applications for demo purposes
-  generateSampleApplications(student: Student): Application[] {
-    const sampleApplications: Application[] = [
-      {
-        application_id: `app_${Date.now()}_1`,
-        student_id: student.id_number,
-        course_id: 'COURSE001',
-        university_id: 'UNI001',
-        course_name: 'Bachelor of Medicine and Bachelor of Surgery',
-        university_name: 'University of Cape Town',
-        university_location: 'Cape Town',
-        application_status: 'Pending',
-        application_date: new Date().toISOString()
-      },
-      {
-        application_id: `app_${Date.now()}_2`,
-        student_id: student.id_number,
-        course_id: 'COURSE002',
-        university_id: 'UNI002',
-        course_name: 'Bachelor of Engineering in Civil Engineering',
-        university_name: 'University of the Witwatersrand',
-        university_location: 'Johannesburg',
-        application_status: 'Pending',
-        application_date: new Date().toISOString()
-      }
-    ];
-
-    this.saveApplications(student.id_number, sampleApplications);
-    return sampleApplications;
-  }
+  // Generate sample applications for demo purposes - REMOVED
+  // Applications should now be created through the actual course application flow
 }
 
 export const offersService = new OffersService();

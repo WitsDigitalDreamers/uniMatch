@@ -39,6 +39,7 @@ import {
   checkCourseEligibility, 
   calculateAPS 
 } from '@/data/mockData';
+import { offersService } from '@/services/offersService';
 
 const Courses = () => {
   const { student } = useAuth();
@@ -118,32 +119,65 @@ const Courses = () => {
   };
 
   const submitApplication = async () => {
-    if (!selectedCourseForApplication) return;
+    if (!selectedCourseForApplication || !student) return;
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Add to applied courses
-    setAppliedCourses(prev => [...prev, selectedCourseForApplication.course_id]);
-    
-    // Reset application flow
-    setApplicationStep('select');
-    setSelectedCourseForApplication(null);
-    setWantsResidence(false);
-    setSelectedResidences([]);
-    setIsSubmitting(false);
-    
-    // Show success message
-    const residenceText = wantsResidence && selectedResidences.length > 0 
-      ? ` and ${selectedResidences.length} residence(s)`
-      : '';
-    
-    toast({
-      title: "Application Submitted Successfully!",
-      description: `Your application for ${selectedCourseForApplication.name}${residenceText} has been submitted.`,
-    });
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Get university info
+      const university = universities.find(u => u.university_id === selectedCourseForApplication.university_id);
+      
+      // Create application
+      const application = {
+        student_id: student.id_number,
+        course_id: selectedCourseForApplication.course_id,
+        university_id: selectedCourseForApplication.university_id,
+        course_name: selectedCourseForApplication.name,
+        university_name: university?.name || 'Unknown University',
+        university_location: university?.location || 'Unknown Location',
+        application_status: 'Pending' as const
+      };
+      
+      // Add application to service
+      offersService.addApplication(student.id_number, application);
+      
+      // Generate offers based on the application
+      const offers = offersService.generateOffersFromApplications(student);
+      offersService.saveOffers(student.id_number, offers);
+      
+      // Add to applied courses
+      setAppliedCourses(prev => [...prev, selectedCourseForApplication.course_id]);
+      
+      // Reset application flow
+      setApplicationStep('select');
+      setSelectedCourseForApplication(null);
+      setWantsResidence(false);
+      setSelectedResidences([]);
+      setIsSubmitting(false);
+      
+      // Show success message
+      const residenceText = wantsResidence && selectedResidences.length > 0 
+        ? ` and ${selectedResidences.length} residence(s)`
+        : '';
+      
+      const offerText = offers.length > 0 ? ' You should receive an offer soon!' : '';
+      
+      toast({
+        title: "Application Submitted Successfully!",
+        description: `Your application for ${selectedCourseForApplication.name}${residenceText} has been submitted.${offerText}`,
+      });
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      setIsSubmitting(false);
+      toast({
+        title: "Error",
+        description: "Failed to submit application. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetApplication = () => {

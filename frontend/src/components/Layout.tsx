@@ -22,6 +22,7 @@ const Layout = () => {
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Courses', href: '/courses', icon: BookOpen },
     { name: 'My Offers', href: '/offers', icon: Mail },
+    { name: 'Scholarships', href: '/scholarships', icon: Award },
     { name: 'Room Matching', href: '/room-matching', icon: Users },
     { name: 'Career Planning', href: '/career-planning', icon: Briefcase },
   ];
