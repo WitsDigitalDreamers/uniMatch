@@ -173,6 +173,25 @@ const SignUp = () => {
     setIsLoading(true);
 
     try {
+      // Combine core marks and additional subject marks
+      const allMarks = {
+        mathematics: Number(formData.marks.mathematics) || 0,
+        english: Number(formData.marks.english) || 0,
+        physical_sciences: Number(formData.marks.physical_sciences) || 0,
+        life_sciences: Number(formData.marks.life_sciences) || 0,
+        accounting: Number(formData.marks.accounting) || 0,
+        economics: Number(formData.marks.economics) || 0,
+        geography: Number(formData.marks.geography) || 0,
+        history: Number(formData.marks.history) || 0,
+        // Add additional subjects
+        ...Object.fromEntries(
+          Object.entries(subjectMarks).map(([subject, mark]) => [
+            subject.toLowerCase().replace(/\s+/g, '_'),
+            Number(mark) || 0
+          ])
+        )
+      };
+
       const success = await signup({
         id_number: formData.idNumber,
         username: formData.username,
@@ -181,16 +200,7 @@ const SignUp = () => {
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
-        marks: {
-          mathematics: Number(formData.marks.mathematics) || 0,
-          english: Number(formData.marks.english) || 0,
-          physical_sciences: Number(formData.marks.physical_sciences) || 0,
-          life_sciences: Number(formData.marks.life_sciences) || 0,
-          accounting: Number(formData.marks.accounting) || 0,
-          economics: Number(formData.marks.economics) || 0,
-          geography: Number(formData.marks.geography) || 0,
-          history: Number(formData.marks.history) || 0
-        }
+        marks: allMarks
       });
 
       if (success) {
