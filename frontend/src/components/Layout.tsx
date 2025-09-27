@@ -10,7 +10,8 @@ import {
   LogOut,
   User,
   Users,
-  Briefcase
+  Briefcase,
+  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,7 @@ const Layout = () => {
     { name: 'Scholarships', href: '/scholarships', icon: Award },
     { name: 'Room Matching', href: '/room-matching', icon: Users },
     { name: 'Career Planning', href: '/career-planning', icon: Briefcase },
+    { name: 'Edit Profile', href: '/edit-profile', icon: Settings },
   ];
 
   const handleLogout = () => {
