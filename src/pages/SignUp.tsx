@@ -38,8 +38,8 @@ const SignUp = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [schoolSearchOpen, setSchoolSearchOpen] = useState(false);
-  const [subjectSearchOpen, setSubjectSearchOpen] = useState(false);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [subjectMarks, setSubjectMarks] = useState<Record<string, string>>({});
   const [customSchoolData, setCustomSchoolData] = useState({
     name: '',
     province: '',
@@ -80,12 +80,34 @@ const SignUp = () => {
         ...prev,
         [customField]: value
       }));
+    } else if (field.startsWith('subjectMarks.')) {
+      const subjectField = field.split('.')[1];
+      setSubjectMarks(prev => ({
+        ...prev,
+        [subjectField]: value
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
         [field]: value
       }));
     }
+  };
+
+  const addSubject = (subject: string) => {
+    if (!selectedSubjects.includes(subject)) {
+      setSelectedSubjects(prev => [...prev, subject]);
+      setSubjectMarks(prev => ({ ...prev, [subject]: '' }));
+    }
+  };
+
+  const removeSubject = (subject: string) => {
+    setSelectedSubjects(prev => prev.filter(s => s !== subject));
+    setSubjectMarks(prev => {
+      const newMarks = { ...prev };
+      delete newMarks[subject];
+      return newMarks;
+    });
   };
 
   const validateForm = () => {
@@ -346,7 +368,7 @@ const SignUp = () => {
                                 <div className="flex flex-col">
                                   <span className="font-medium text-primary">My school is not listed</span>
                                   <span className="text-sm text-muted-foreground">
-                                    Enter your school details manually
+                                    Enter your school details below
                                   </span>
                                 </div>
                               </CommandItem>
@@ -496,101 +518,63 @@ const SignUp = () => {
                       Since your school is not a partner, please enter your marks manually to get personalized course recommendations
                     </p>
                     
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {Object.entries(formData.marks).map(([subject, value]) => (
-                        <div key={subject} className="space-y-2">
-                          <Label htmlFor={subject} className="capitalize">
-                            {subject.replace('_', ' ')}
-                          </Label>
-                          <Input
-                            id={subject}
-                            type="number"
-                            placeholder="0-100"
-                            min="0"
-                            max="100"
-                            value={value}
-                            onChange={(e) => handleInputChange(`marks.${subject}`, e.target.value)}
-                            disabled={isLoading}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                 
 
-                {/* Subject Selection - Only show for non-partner schools */}
-                {showAcademicMarks && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-foreground">Additional Subjects (Optional)</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Select any additional subjects you're taking
-                    </p>
-                    
-                    <div className="space-y-2">
-                      <Label>Selected Subjects</Label>
-                      <Popover open={subjectSearchOpen} onOpenChange={setSubjectSearchOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={subjectSearchOpen}
-                            className="w-full justify-between"
-                          >
-                            <Search className="mr-2 h-4 w-4" />
-                            {selectedSubjects.length > 0 
-                              ? `${selectedSubjects.length} subject(s) selected`
-                              : "Select additional subjects..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput placeholder="Search subjects..." />
-                            <CommandList>
-                              <CommandEmpty>No subject found.</CommandEmpty>
-                              <CommandGroup>
-                                {availableSubjects.map((subject) => (
-                                  <CommandItem
-                                    key={subject}
-                                    value={subject}
-                                    onSelect={() => {
-                                      setSelectedSubjects(prev => 
-                                        prev.includes(subject)
-                                          ? prev.filter(s => s !== subject)
-                                          : [...prev, subject]
-                                      );
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        selectedSubjects.includes(subject) ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    {subject}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                    {/* Additional Subjects */}
+                    <div className="space-y-4">
+                     
+                      <p className="text-sm text-muted-foreground">
+                        Select and add marks for all the subjects you're taking
+                      </p>
+                      
+                      <div className="space-y-2">
+                        <Label>Add Subject</Label>
+                        <Select onValueChange={addSubject}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a subject to add..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableSubjects
+                              .filter(subject => !selectedSubjects.includes(subject))
+                              .map((subject) => (
+                                <SelectItem key={subject} value={subject}>
+                                  {subject}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       
                       {selectedSubjects.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="space-y-3">
+                          <Label>Selected Subjects</Label>
                           {selectedSubjects.map((subject) => (
-                            <div
-                              key={subject}
-                              className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-sm"
-                            >
-                              {subject}
-                              <button
+                            <div key={subject} className="flex items-center gap-3 p-3 border rounded-lg">
+                              <div className="flex-1">
+                                <Label htmlFor={`subject-${subject}`} className="font-medium">
+                                  {subject}
+                                </Label>
+                                <Input
+                                  id={`subject-${subject}`}
+                                  type="number"
+                                  placeholder="0-100"
+                                  min="0"
+                                  max="100"
+                                  value={subjectMarks[subject] || ''}
+                                  onChange={(e) => handleInputChange(`subjectMarks.${subject}`, e.target.value)}
+                                  disabled={isLoading}
+                                  className="mt-1"
+                                />
+                              </div>
+                              <Button
                                 type="button"
-                                onClick={() => setSelectedSubjects(prev => prev.filter(s => s !== subject))}
-                                className="ml-1 hover:text-primary/70"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeSubject(subject)}
+                                className="text-destructive hover:text-destructive"
                               >
-                                ×
-                              </button>
+                                Remove
+                              </Button>
                             </div>
                           ))}
                         </div>
