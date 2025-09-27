@@ -48,6 +48,8 @@ export interface Course {
     additional_requirements?: string[];
   };
   points_required: number;
+  estimated_cost: number;
+  modules: string[];
 }
 
 export interface Offer {
@@ -133,7 +135,9 @@ export const courses: Course[] = [
       english: 60,
       physical_sciences: 70
     },
-    points_required: 42
+    points_required: 42,
+    estimated_cost: 78500,
+    modules: ["Engineering Mathematics 1", "Physics for Engineers", "Chemistry for Engineers", "Engineering Design", "Computer Programming", "Engineering Graphics"]
   },
   {
     course_id: "UCT_MED001",
@@ -147,7 +151,9 @@ export const courses: Course[] = [
       physical_sciences: 70,
       life_sciences: 70
     },
-    points_required: 45
+    points_required: 45,
+    estimated_cost: 125000,
+    modules: ["Human Anatomy", "Human Physiology", "Biochemistry", "Medical Ethics", "Pathology", "Pharmacology", "Clinical Skills"]
   },
   {
     course_id: "UCT_COM001",
@@ -160,7 +166,9 @@ export const courses: Course[] = [
       english: 60,
       accounting: 60
     },
-    points_required: 35
+    points_required: 35,
+    estimated_cost: 65000,
+    modules: ["Financial Accounting", "Management Accounting", "Economics", "Business Statistics", "Business Law", "Marketing Management"]
   },
   // Wits Courses
   {
@@ -174,7 +182,9 @@ export const courses: Course[] = [
       english: 60,
       physical_sciences: 65
     },
-    points_required: 40
+    points_required: 40,
+    estimated_cost: 72000,
+    modules: ["Programming Fundamentals", "Data Structures", "Algorithms", "Database Systems", "Software Engineering", "Computer Networks", "Machine Learning"]
   },
   {
     course_id: "WITS_LAW001",
@@ -186,7 +196,9 @@ export const courses: Course[] = [
       english: 70,
       mathematics: 50
     },
-    points_required: 38
+    points_required: 38,
+    estimated_cost: 58000,
+    modules: ["Constitutional Law", "Criminal Law", "Contract Law", "Property Law", "Administrative Law", "Commercial Law", "Legal Research"]
   },
   // UKZN Courses
   {
@@ -200,7 +212,9 @@ export const courses: Course[] = [
       english: 60,
       life_sciences: 65
     },
-    points_required: 32
+    points_required: 32,
+    estimated_cost: 45000,
+    modules: ["Plant Science", "Animal Science", "Soil Science", "Agricultural Economics", "Farm Management", "Crop Production", "Agricultural Technology"]
   }
 ];
 

@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useToast } from '@/hooks/use-toast';
 import { 
   CheckCircle, 
   XCircle, 
@@ -14,7 +16,10 @@ import {
   Filter,
   BookOpen,
   MapPin,
-  Users
+  Users,
+  ChevronDown,
+  ChevronUp,
+  Send
 } from 'lucide-react';
 import { 
   courses, 
@@ -25,9 +30,12 @@ import {
 
 const Courses = () => {
   const { student } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUniversity, setSelectedUniversity] = useState('all');
   const [selectedFaculty, setSelectedFaculty] = useState('all');
+  const [appliedCourses, setAppliedCourses] = useState<string[]>([]);
+  const [showModules, setShowModules] = useState<string[]>([]);
   
   if (!student) return null;
 
@@ -63,6 +71,8 @@ const Courses = () => {
   const CourseCard = ({ course }: { course: typeof courses[0] }) => {
     const university = universities.find(u => u.university_id === course.university_id);
     const eligibility = checkCourseEligibility(student, course);
+    const isApplied = appliedCourses.includes(course.course_id);
+    const isModulesVisible = showModules.includes(course.course_id);
     
     let statusIcon;
     let statusColor;
@@ -81,6 +91,25 @@ const Courses = () => {
       statusColor = "text-destructive";
       statusText = "Not Eligible";
     }
+
+    const handleApply = () => {
+      if (!isApplied) {
+        setAppliedCourses(prev => [...prev, course.course_id]);
+        toast({
+          title: "Application Complete",
+          description: `Your application for ${course.name} has been submitted successfully.`,
+          variant: "default",
+        });
+      }
+    };
+
+    const toggleModules = () => {
+      setShowModules(prev => 
+        prev.includes(course.course_id) 
+          ? prev.filter(id => id !== course.course_id)
+          : [...prev, course.course_id]
+      );
+    };
 
     return (
       <Card className="h-full">
@@ -103,6 +132,11 @@ const Courses = () => {
           <div className="flex items-center gap-4">
             <Badge variant="secondary">{course.faculty}</Badge>
             <Badge variant="outline">{university?.location}</Badge>
+          </div>
+
+          <div className="p-3 bg-muted/50 rounded-lg">
+            <div className="text-sm font-medium text-foreground mb-1">Estimated Annual Cost</div>
+            <div className="text-lg font-bold text-primary">R {course.estimated_cost.toLocaleString()}</div>
           </div>
           
           <div className="space-y-2">
@@ -172,10 +206,41 @@ const Courses = () => {
             )}
           </div>
 
+          <Collapsible open={isModulesVisible} onOpenChange={() => toggleModules()}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" size="sm" className="w-full justify-between">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  View Modules
+                </div>
+                {isModulesVisible ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="p-3 bg-muted/30 rounded-lg">
+                <h5 className="text-sm font-medium mb-2">Course Modules:</h5>
+                <ul className="text-xs space-y-1">
+                  {course.modules.map((module, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-primary">•</span>
+                      <span>{module}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           <div className="pt-2">
-            <Button variant="outline" size="sm" className="w-full">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Learn More
+            <Button 
+              onClick={handleApply}
+              variant={isApplied ? "secondary" : "default"}
+              size="sm" 
+              className="w-full"
+              disabled={isApplied}
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {isApplied ? "Application Complete" : "Apply"}
             </Button>
           </div>
         </CardContent>
