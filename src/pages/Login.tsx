@@ -175,6 +175,13 @@ const Login = () => {
                   Click any credential to auto-fill
                 </p>
               </div>
+
+              <div className="text-center text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <Link to="/signup" className="text-primary hover:underline font-medium">
+                  Sign up here
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>

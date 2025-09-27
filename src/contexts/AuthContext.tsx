@@ -4,6 +4,7 @@ import { Student, students } from '@/data/mockData';
 interface AuthContextType {
   student: Student | null;
   login: (idNumber: string, username: string) => Promise<boolean>;
+  signup: (studentData: Omit<Student, 'id_number'> & { id_number: string }) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -73,6 +74,44 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return false;
   };
 
+  const signup = async (studentData: Omit<Student, 'id_number'> & { id_number: string }): Promise<boolean> => {
+    setIsLoading(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Check if student already exists
+    const existingStudent = students.find(
+      s => s.id_number === studentData.id_number || s.username === studentData.username
+    );
+    
+    if (existingStudent) {
+      setIsLoading(false);
+      return false;
+    }
+    
+    // Create new student
+    const newStudent: Student = {
+      ...studentData,
+      id_number: studentData.id_number
+    };
+    
+    // In a real app, this would be sent to the backend
+    // For now, we'll add it to the mock data
+    students.push(newStudent);
+    
+    // Generate mock token
+    const token = `mock_token_${Date.now()}_${newStudent.id_number}`;
+    
+    // Store in localStorage
+    localStorage.setItem('student_token', token);
+    localStorage.setItem('student_data', JSON.stringify(newStudent));
+    
+    setStudent(newStudent);
+    setIsLoading(false);
+    return true;
+  };
+
   const logout = () => {
     localStorage.removeItem('student_token');
     localStorage.removeItem('student_data');
@@ -82,6 +121,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const value = {
     student,
     login,
+    signup,
     logout,
     isAuthenticated: !!student,
     isLoading
