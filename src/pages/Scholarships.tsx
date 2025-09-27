@@ -18,7 +18,8 @@ import {
   bursaries,
   schools,
   calculateAPS,
-  courses
+  courses,
+  checkCourseEligibility
 } from '@/data/mockData';
 
 const Scholarships = () => {
@@ -29,7 +30,25 @@ const Scholarships = () => {
   const aps = calculateAPS(student.marks);
   const studentSchool = schools.find(s => s.school_id === student.school_id);
   
-  // Check eligibility for each bursary
+  // Get student's eligible courses
+  const eligibleCourses = courses.filter(course => 
+    checkCourseEligibility(student, course).eligible
+  );
+
+  // Filter bursaries for eligible courses only
+  const relevantBursaries = bursaries.filter(bursary => {
+    // If bursary has faculty requirements, check if student has eligible courses in those faculties
+    if (bursary.eligibility.faculties) {
+      const studentEligibleFaculties = eligibleCourses.map(course => course.faculty);
+      return bursary.eligibility.faculties.some(faculty => 
+        studentEligibleFaculties.includes(faculty)
+      );
+    }
+    // If no faculty requirements, include the bursary
+    return true;
+  });
+
+  // Check eligibility for each relevant bursary
   const checkBursaryEligibility = (bursary: typeof bursaries[0]) => {
     const reasons: string[] = [];
     let eligible = true;
@@ -48,31 +67,8 @@ const Scholarships = () => {
       }
     }
 
-    // Check faculty requirement
-    if (bursary.eligibility.faculties) {
-      const eligibleCourses = courses.filter(course => {
-        return bursary.eligibility.faculties!.includes(course.faculty);
-      });
-      
-      if (eligibleCourses.length === 0) {
-        eligible = false;
-        reasons.push(`Only for faculties: ${bursary.eligibility.faculties.join(', ')}`);
-      }
-    }
-
     return { eligible, reasons };
   };
-
-  // Categorize bursaries
-  const eligibleBursaries = bursaries.filter(b => checkBursaryEligibility(b).eligible);
-  const partiallyEligible = bursaries.filter(b => {
-    const eligibility = checkBursaryEligibility(b);
-    return !eligibility.eligible && eligibility.reasons.length <= 2;
-  });
-  const notEligible = bursaries.filter(b => {
-    const eligibility = checkBursaryEligibility(b);
-    return !eligibility.eligible && eligibility.reasons.length > 2;
-  });
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {
@@ -132,10 +128,8 @@ const Scholarships = () => {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-success" />
-              <span className="text-2xl font-bold text-success">
-                {formatAmount(bursary.amount)}
-              </span>
+              
+             
             </div>
             <Badge variant={isExpired ? "destructive" : isUrgent ? "secondary" : "outline"}>
               <Calendar className="w-3 h-3 mr-1" />
@@ -247,118 +241,57 @@ const Scholarships = () => {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Bursaries</CardTitle>
+            <CardTitle className="text-sm font-medium">Relevant Bursaries</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{bursaries.length}</div>
+            <div className="text-2xl font-bold">{relevantBursaries.length}</div>
             <p className="text-xs text-muted-foreground">
-              Total opportunities
+              For your eligible courses
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">You're Eligible For</CardTitle>
-            <CheckCircle className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">{eligibleBursaries.length}</div>
-           
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Potential Matches</CardTitle>
-            <AlertCircle className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">{partiallyEligible.length}</div>
-            <p className="text-xs text-muted-foreground">
-              May qualify with improvements
-            </p>
-          </CardContent>
-        </Card>
+        
       </div>
 
       {/* Urgent Deadlines Alert */}
-      {eligibleBursaries.some(b => getDaysUntilDeadline(b.deadline) <= 14 && getDaysUntilDeadline(b.deadline) >= 0) && (
+      {relevantBursaries.some(b => getDaysUntilDeadline(b.deadline) <= 14 && getDaysUntilDeadline(b.deadline) >= 0) && (
         <Alert className="border-warning bg-warning/5">
           <Calendar className="h-4 w-4 text-warning" />
           <AlertDescription className="text-warning">
-            {eligibleBursaries.filter(b => getDaysUntilDeadline(b.deadline) <= 14 && getDaysUntilDeadline(b.deadline) >= 0).length} bursary 
+            {relevantBursaries.filter(b => getDaysUntilDeadline(b.deadline) <= 14 && getDaysUntilDeadline(b.deadline) >= 0).length} bursary 
             application(s) have deadlines within the next 2 weeks. Apply soon!
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Eligible Bursaries */}
-      {eligibleBursaries.length > 0 && (
+      {/* Relevant Bursaries */}
+      {relevantBursaries.length > 0 ? (
         <div className="space-y-6">
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-6 h-6 text-success" />
-            <h2 className="text-2xl font-semibold">Eligible Bursaries ({eligibleBursaries.length})</h2>
+            <Award className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-semibold">Bursaries for Your Courses ({relevantBursaries.length})</h2>
           </div>
           <p className="text-muted-foreground">
-            These bursaries match your current qualifications. Apply as soon as possible!
+            These bursaries are available for the courses you're eligible to study.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {eligibleBursaries.map(bursary => (
+            {relevantBursaries.map(bursary => (
               <BursaryCard key={bursary.bursary_id} bursary={bursary} />
             ))}
           </div>
         </div>
-      )}
-
-      {/* Partially Eligible */}
-      {partiallyEligible.length > 0 && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-6 h-6 text-warning" />
-            <h2 className="text-2xl font-semibold">Potential Matches ({partiallyEligible.length})</h2>
-          </div>
-          <p className="text-muted-foreground">
-            You might qualify for these bursaries with some improvements or additional requirements.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {partiallyEligible.map(bursary => (
-              <BursaryCard key={bursary.bursary_id} bursary={bursary} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Not Eligible (if user wants to see all) */}
-      {notEligible.length > 0 && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <XCircle className="w-6 h-6 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold text-muted-foreground">Other Bursaries ({notEligible.length})</h2>
-          </div>
-          <p className="text-muted-foreground">
-            These bursaries have requirements you don't currently meet.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {notEligible.map(bursary => (
-              <BursaryCard key={bursary.bursary_id} bursary={bursary} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* No bursaries message */}
-      {bursaries.length === 0 && (
+      ) : (
         <Card>
           <CardContent className="text-center py-12">
             <Award className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h3 className="text-lg font-medium mb-2">No Bursaries Available</h3>
+            <h3 className="text-lg font-medium mb-2">No Relevant Bursaries</h3>
             <p className="text-muted-foreground">
-              Check back later for new scholarship and bursary opportunities.
+              No bursaries are currently available for your eligible courses. Check back later for new opportunities.
             </p>
           </CardContent>
         </Card>

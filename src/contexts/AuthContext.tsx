@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Student, students } from '@/data/mockData';
+import { Student } from '@/types';
+import { students } from '@/data/mockData';
 
 interface AuthContextType {
   student: Student | null;

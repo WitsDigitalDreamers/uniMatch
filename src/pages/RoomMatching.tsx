@@ -200,19 +200,19 @@ const RoomMatching = () => {
   };
 
   const isCurrentStepComplete = () => {
-    const currentField = Object.keys(quizAnswers)[currentStep];
-    if (currentField === 'hobbies' || currentField === 'interests') {
-      return true; // These are optional
+    if (currentStep < quizSteps.length) {
+      // For quiz steps, check if the corresponding field has a value
+      const field = Object.keys(quizAnswers)[currentStep];
+      return quizAnswers[field as keyof typeof quizAnswers] > 0;
     }
-    return quizAnswers[currentField as keyof typeof quizAnswers] > 0;
+    // For hobbies and interests steps, they are always complete (optional)
+    return true;
   };
 
   const isQuizComplete = () => {
+    // Check if all required quiz steps are completed
     return quizSteps.every((_, index) => {
       const field = Object.keys(quizAnswers)[index];
-      if (field === 'hobbies' || field === 'interests') {
-        return true; // These are optional
-      }
       return quizAnswers[field as keyof typeof quizAnswers] > 0;
     });
   };
@@ -367,7 +367,7 @@ const RoomMatching = () => {
           Previous
         </Button>
         
-        {currentStep < quizSteps.length + 1 ? (
+        {currentStep < quizSteps.length + 2 ? (
           <Button
             onClick={nextStep}
             disabled={!isCurrentStepComplete()}

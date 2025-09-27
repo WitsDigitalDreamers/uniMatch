@@ -62,7 +62,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">APS Score</CardTitle>
+            <CardTitle className="text-sm font-medium">AP Score</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -195,47 +195,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      {(eligibleCourses.length > 0 || pendingOffers.length > 0) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Things you might want to do next</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {eligibleCourses.length > 0 && (
-                <div className="flex items-center gap-3 p-4 border rounded-lg bg-success/5 border-success/20">
-                  <BookOpen className="w-8 h-8 text-success" />
-                  <div>
-                    <h4 className="font-medium">Explore {eligibleCourses.length} Eligible Courses</h4>
-                    <p className="text-sm text-muted-foreground">View courses you qualify for</p>
-                  </div>
-                </div>
-              )}
-              
-              {pendingOffers.length > 0 && (
-                <div className="flex items-center gap-3 p-4 border rounded-lg bg-warning/5 border-warning/20">
-                  <Mail className="w-8 h-8 text-warning" />
-                  <div>
-                    <h4 className="font-medium">{pendingOffers.length} Pending Offers</h4>
-                    <p className="text-sm text-muted-foreground">Review and respond to offers</p>
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex items-center gap-3 p-4 border rounded-lg bg-info/5 border-info/20">
-                <Award className="w-8 h-8 text-info" />
-                <div>
-                  <h4 className="font-medium">Check Scholarships</h4>
-                  <p className="text-sm text-muted-foreground">Find financial aid opportunities</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

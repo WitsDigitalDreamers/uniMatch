@@ -17,9 +17,9 @@ import {
 import { 
   offers as initialOffers, 
   courses, 
-  universities, 
-  Offer
+  universities
 } from '@/data/mockData';
+import type { Offer } from '@/types';
 import { toast } from '@/hooks/use-toast';
 
 const Offers = () => {

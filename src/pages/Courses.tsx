@@ -255,7 +255,7 @@ const Courses = () => {
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <div className="p-3 bg-muted/30 rounded-lg">
-                <h5 className="text-sm font-medium mb-2">Course Modules:</h5>
+                <h5 className="text-sm font-medium mb-2">first year Course Modules:</h5>
                 <ul className="text-xs space-y-1">
                   {course.modules.map((module, index) => (
                     <li key={index} className="flex items-start gap-2">
@@ -439,10 +439,6 @@ const Courses = () => {
           <TabsTrigger value="partial" className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
             Partially Eligible ({partiallyEligible.length})
-          </TabsTrigger>
-          <TabsTrigger value="not-eligible" className="flex items-center gap-2">
-            <XCircle className="w-4 h-4" />
-            Not Eligible ({notEligible.length})
           </TabsTrigger>
         </TabsList>
         
