@@ -181,7 +181,7 @@ const Courses = () => {
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <span>APS Score:</span>
+                  <span>AP Score:</span>
                   <span className={aps >= (course.requirements.minimum_aps || 0) ? "text-success" : "text-destructive"}>
                     {course.requirements.minimum_aps}
                   </span>
@@ -365,7 +365,7 @@ const Courses = () => {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Course Explorer</h1>
         <p className="text-muted-foreground">
-          Discover university courses based on your academic performance. Your APS score: <span className="font-semibold text-primary">{aps}</span>
+          Discover university courses based on your academic performance. Your AP score: <span className="font-semibold text-primary">{aps}</span>
         </p>
       </div>
 

@@ -22,7 +22,9 @@ import {
   GraduationCap,
   Target,
   BarChart3,
-  Heart
+  Heart,
+  ArrowRight,
+  ChevronRight
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -39,6 +41,7 @@ const CareerPlanning = () => {
   const [newInterest, setNewInterest] = useState('');
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [courseCareers, setCourseCareers] = useState<Career[]>([]);
+  const [selectedCareerForPathway, setSelectedCareerForPathway] = useState<Career | null>(null);
 
   // Get courses that have corresponding careers
   const getCoursesWithCareers = (): Course[] => {
@@ -50,6 +53,48 @@ const CareerPlanning = () => {
     });
     
     return courses.filter(course => careerCourseIds.has(course.course_id));
+  };
+
+  // Find similar careers based on skills, industry, and course requirements
+  const getSimilarCareers = (targetCareer: Career): Career[] => {
+    return careers
+      .filter(career => career.career_id !== targetCareer.career_id)
+      .map(career => {
+        let similarityScore = 0;
+        
+        // Check industry similarity
+        if (career.category === targetCareer.category) {
+          similarityScore += 3;
+        }
+        
+        // Check skills similarity
+        const commonSkills = career.skills_required.filter(skill => 
+          targetCareer.skills_required.includes(skill)
+        );
+        similarityScore += commonSkills.length;
+        
+        // Check course requirements similarity
+        const commonCourses = career.required_courses.filter(courseId =>
+          targetCareer.required_courses.includes(courseId) ||
+          targetCareer.alternative_courses?.includes(courseId)
+        );
+        similarityScore += commonCourses.length;
+        
+        // Check alternative courses
+        if (career.alternative_courses) {
+          const commonAltCourses = career.alternative_courses.filter(courseId =>
+            targetCareer.required_courses.includes(courseId) ||
+            targetCareer.alternative_courses?.includes(courseId)
+          );
+          similarityScore += commonAltCourses.length * 0.5;
+        }
+        
+        return { career, score: similarityScore };
+      })
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map(item => item.career);
   };
 
   useEffect(() => {
@@ -202,6 +247,26 @@ const CareerPlanning = () => {
     });
   };
 
+  const handleSimilarCareers = (careerId: string) => {
+    const targetCareer = careers.find(c => c.career_id === careerId);
+    if (targetCareer) {
+      const similarCareers = getSimilarCareers(targetCareer);
+      setFilteredCareers(similarCareers);
+      setSelectedTab('all');
+      toast({
+        title: "Similar Careers",
+        description: `Showing ${similarCareers.length} careers similar to ${targetCareer.name}`,
+      });
+    }
+  };
+
+  const handleViewPathway = (careerId: string) => {
+    const career = careers.find(c => c.career_id === careerId);
+    if (career) {
+      setSelectedCareerForPathway(career);
+    }
+  };
+
   const getOutlookColor = (outlook: Career['job_market_outlook']) => {
     switch (outlook) {
       case 'High demand':
@@ -352,16 +417,12 @@ const CareerPlanning = () => {
         <Tabs value={selectedTab} onValueChange={handleTabChange} className="mb-8">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="all">All Careers</TabsTrigger>
-
-            <TabsTrigger value="recommended">Recommended</TabsTrigger>
-            <TabsTrigger value="high-demand">High Demand</TabsTrigger>
-
           </TabsList>
 
           <TabsContent value="all" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredCareers.map((career) => (
-                <CareerCard key={career.career_id} career={career} />
+                <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
               ))}
             </div>
           </TabsContent>
@@ -379,7 +440,7 @@ const CareerPlanning = () => {
                 </div>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {filteredCareers.map((career) => (
-                    <CareerCard key={career.career_id} career={career} />
+                    <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
                   ))}
                 </div>
               </div>
@@ -395,7 +456,7 @@ const CareerPlanning = () => {
           <TabsContent value="recommended" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredCareers.map((career) => (
-                <CareerCard key={career.career_id} career={career} />
+                <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
               ))}
             </div>
           </TabsContent>
@@ -403,7 +464,7 @@ const CareerPlanning = () => {
           <TabsContent value="high-demand" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredCareers.map((career) => (
-                <CareerCard key={career.career_id} career={career} />
+                <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
               ))}
             </div>
           </TabsContent>
@@ -411,18 +472,108 @@ const CareerPlanning = () => {
           <TabsContent value="high-salary" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredCareers.map((career) => (
-                <CareerCard key={career.career_id} career={career} />
+                <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
               ))}
             </div>
           </TabsContent>
         </Tabs>
+      </div>
+      
+      {/* Career Pathway Modal */}
+      {selectedCareerForPathway && (
+        <CareerPathway 
+          career={selectedCareerForPathway} 
+          onClose={() => setSelectedCareerForPathway(null)} 
+        />
+      )}
+    </div>
+  );
+};
+
+// Career Pathway Component
+const CareerPathway = ({ career, onClose }: { career: Career; onClose: () => void }) => {
+  const pathwaySteps = [
+    {
+      level: "Entry Level",
+      title: "Junior/Entry Position",
+      duration: "0-2 years",
+      salary: career.average_salary?.entry_level || career.average_salary_entry || 0,
+      description: "Starting position, learning the basics",
+      skills: career.skills_required.slice(0, 3)
+    },
+    {
+      level: "Mid Level", 
+      title: "Mid-Level Professional",
+      duration: "3-7 years",
+      salary: career.average_salary?.mid_level || career.average_salary_mid || 0,
+      description: "Gaining expertise and taking on more responsibility",
+      skills: career.skills_required.slice(0, 4)
+    },
+    {
+      level: "Senior Level",
+      title: "Senior Professional/Manager",
+      duration: "8+ years", 
+      salary: career.average_salary?.senior_level || career.average_salary_senior || 0,
+      description: "Leading teams and making strategic decisions",
+      skills: career.skills_required
+    }
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">{career.name} Career Pathway</h2>
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+          
+          <div className="space-y-6">
+            {pathwaySteps.map((step, index) => (
+              <div key={index} className="relative">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-bold">{index + 1}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-semibold">{step.title}</h3>
+                        <Badge variant="outline">{step.level}</Badge>
+                      </div>
+                      <p className="text-gray-600 mb-3">{step.description}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-gray-500" />
+                          <span>{step.duration}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                      
+                          <span>R{step.salary.toLocaleString()}/year</span>
+                        </div>
+                      </div>
+                 
+                    </div>
+                  </div>
+                </div>
+                {index < pathwaySteps.length - 1 && (
+                  <div className="absolute left-6 top-12 w-0.5 h-6 bg-gray-300"></div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 // Career Card Component
-const CareerCard = ({ career }: { career: Career }) => {
+const CareerCard = ({ career, onSimilarCareers, onViewPathway }: { career: Career; onSimilarCareers?: (careerId: string) => void; onViewPathway?: (careerId: string) => void }) => {
   const getOutlookColor = (outlook: Career['job_market_outlook']) => {
     switch (outlook) {
       case 'High demand':
@@ -470,10 +621,6 @@ const CareerCard = ({ career }: { career: Career }) => {
           
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-green-600" />
-              <span>R{career.average_salary?.entry_level?.toLocaleString() || career.average_salary_entry?.toLocaleString() || 'N/A'}</span>
-            </div>
-            <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-blue-600" />
               <Badge className={getGrowthColor(career.growth_prospects)}>
                 {career.growth_prospects}
@@ -483,36 +630,38 @@ const CareerCard = ({ career }: { career: Career }) => {
               <Users className="w-4 h-4 text-purple-600" />
               <span>{career.work_life_balance}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Target className="w-4 h-4 text-orange-600" />
-              <span>{career.job_security}</span>
-            </div>
+        
           </div>
 
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm">Key Skills:</h4>
-            <div className="flex flex-wrap gap-1">
-              {career.skills_required.slice(0, 3).map((skill, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {skill}
-                </Badge>
-              ))}
-              {career.skills_required.length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{career.skills_required.length - 3} more
-                </Badge>
+
+          <div className="pt-2 space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(career.learn_more_url, '_blank')}
+              >
+                Learn More
+              </Button>
+              {onViewPathway && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onViewPathway(career.career_id)}
+                >
+                  View Pathway
+                </Button>
               )}
             </div>
-          </div>
-
-          <div className="pt-2">
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={() => window.open(career.learn_more_url, '_blank')}
-            >
-              Learn More
-            </Button>
+            {onSimilarCareers && (
+              <Button 
+                variant="secondary" 
+                className="w-full"
+                onClick={() => onSimilarCareers(career.career_id)}
+              >
+                Similar Careers
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
