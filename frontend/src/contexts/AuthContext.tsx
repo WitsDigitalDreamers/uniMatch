@@ -62,35 +62,47 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setIsLoading(true);
       
+      console.log('Attempting login with:', { idNumber, username });
+      
       // Query the students table to find matching student
       const { data, error } = await supabase
         .from('students')
-        .select('*')
+        .select('id_number, username, first_name, last_name, email, school_id, marks, preferred_residences, created_at, updated_at')
         .eq('id_number', idNumber)
-        .eq('username', username)
-        .single();
+        .eq('username', username);
 
-      if (error || !data) {
-        console.error('Login error:', error?.message || 'Student not found');
+      console.log('Query result:', { data, error });
+
+      if (error) {
+        console.error('Login error:', error.message);
         return false;
       }
 
+      if (!data || data.length === 0) {
+        console.error('Login error: Student not found');
+        return false;
+      }
+
+      // Get the first (and should be only) student
+      const student = data[0];
+      console.log('Found student:', student);
+
       // Generate session token
-      const token = `student_token_${Date.now()}_${data.id_number}`;
+      const token = `student_token_${Date.now()}_${student.id_number}`;
       
       // Store in localStorage
       localStorage.setItem('student_token', token);
-      localStorage.setItem('student_data', JSON.stringify(data));
+      localStorage.setItem('student_data', JSON.stringify(student));
       
-      setStudent(data as Student);
+      setStudent(student as Student);
       
       // Generate offers if they don't exist
-      const existingOffers = offersService.getOffers(data.id_number);
+      const existingOffers = offersService.getOffers(student.id_number);
       if (existingOffers.length === 0) {
         // Generate sample applications and offers
-        offersService.generateSampleApplications(data as Student);
-        const offers = offersService.generateOffersFromApplications(data as Student);
-        offersService.saveOffers(data.id_number, offers);
+        offersService.generateSampleApplications(student as Student);
+        const offers = offersService.generateOffersFromApplications(student as Student);
+        offersService.saveOffers(student.id_number, offers);
       }
       
       return true;

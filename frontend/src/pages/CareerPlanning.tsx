@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { careersService } from '@/services/careersService';
-import { Career } from '@/types';
+import { Career, Course } from '@/types';
+import { courses } from '@/data/mockData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +37,8 @@ const CareerPlanning = () => {
   const [selectedTab, setSelectedTab] = useState('all');
   const [studentInterests, setStudentInterests] = useState<string[]>([]);
   const [newInterest, setNewInterest] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [courseCareers, setCourseCareers] = useState<Career[]>([]);
 
   useEffect(() => {
     loadCareers();
@@ -132,9 +135,37 @@ const CareerPlanning = () => {
       results = careersService.getCareersByDemand('High demand');
     } else if (tab === 'high-salary') {
       results = careersService.getCareersBySalaryRange(400000, 2000000);
+    } else if (tab === 'course-based') {
+      results = courseCareers;
     }
     
     setFilteredCareers(results);
+  };
+
+  const handleCourseChange = (courseId: string) => {
+    setSelectedCourse(courseId);
+    if (courseId && courseId !== 'all') {
+      const course = courses.find(c => c.course_id === courseId);
+      if (course) {
+        // Find careers that match this course
+        const relatedCareers = careers.filter(career => 
+          career.required_courses.some(requiredCourse => 
+            requiredCourse.toLowerCase().includes(course.faculty.toLowerCase()) ||
+            course.name.toLowerCase().includes(requiredCourse.toLowerCase())
+          ) ||
+          career.required_courses.some(requiredCourse => 
+            course.name.toLowerCase().includes(requiredCourse.toLowerCase())
+          )
+        );
+        setCourseCareers(relatedCareers);
+        setFilteredCareers(relatedCareers);
+        setSelectedTab('course-based');
+      }
+    } else {
+      setCourseCareers([]);
+      setFilteredCareers(careers);
+      setSelectedTab('all');
+    }
   };
 
   const addInterest = () => {
@@ -226,6 +257,49 @@ const CareerPlanning = () => {
           </p>
         </div>
 
+        {/* Course Selection Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="w-5 h-5" />
+              Select Your Desired Course
+            </CardTitle>
+            <CardDescription>
+              Choose a course you want to study to see related career opportunities.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Select value={selectedCourse} onValueChange={handleCourseChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a course to explore careers..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {courses.map(course => (
+                    <SelectItem key={course.course_id} value={course.course_id}>
+                      {course.name} - {course.faculty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {selectedCourse && selectedCourse !== 'all' && (
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">Selected Course:</h4>
+                  <p className="text-blue-800">
+                    {courses.find(c => c.course_id === selectedCourse)?.name} - 
+                    {courses.find(c => c.course_id === selectedCourse)?.faculty}
+                  </p>
+                  <p className="text-sm text-blue-600 mt-1">
+                    {courseCareers.length} career(s) available for this course
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Student Interests Section */}
         <Card className="mb-8">
           <CardHeader>
@@ -298,8 +372,9 @@ const CareerPlanning = () => {
 
         {/* Career Tabs */}
         <Tabs value={selectedTab} onValueChange={handleTabChange} className="mb-8">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="all">All Careers</TabsTrigger>
+            <TabsTrigger value="course-based">Course-Based</TabsTrigger>
             <TabsTrigger value="recommended">Recommended</TabsTrigger>
             <TabsTrigger value="high-demand">High Demand</TabsTrigger>
             <TabsTrigger value="high-salary">High Salary</TabsTrigger>
@@ -311,6 +386,32 @@ const CareerPlanning = () => {
                 <CareerCard key={career.career_id} career={career} />
               ))}
             </div>
+          </TabsContent>
+
+          <TabsContent value="course-based" className="mt-6">
+            {selectedCourse && selectedCourse !== 'all' ? (
+              <div className="space-y-6">
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h3 className="font-medium text-blue-900 mb-2">
+                    Careers for {courses.find(c => c.course_id === selectedCourse)?.name}
+                  </h3>
+                  <p className="text-blue-800 text-sm">
+                    {courseCareers.length} career(s) available for this course
+                  </p>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredCareers.map((career) => (
+                    <CareerCard key={career.career_id} career={career} />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <GraduationCap className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Course</h3>
+                <p className="text-gray-600">Choose a course above to see related career opportunities.</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="recommended" className="mt-6">
@@ -392,7 +493,7 @@ const CareerCard = ({ career }: { career: Career }) => {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-green-600" />
-              <span>R{career.average_salary_entry.toLocaleString()}</span>
+              <span>R{career.average_salary?.entry_level?.toLocaleString() || career.average_salary_entry?.toLocaleString() || 'N/A'}</span>
             </div>
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-blue-600" />

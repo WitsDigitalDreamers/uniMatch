@@ -123,6 +123,23 @@ async function seedStudents() {
           economics: 88
         },
         preferred_residences: ['RES003', 'RES007']
+      },
+      {
+        id_number: '9999999999',
+        username: 'trustgod.mokgwadi',
+        first_name: 'Trustgod',
+        last_name: 'Mokgwadi',
+        email: 'trustgod.mokgwadi@example.com',
+        school_id: 'SCH001',
+        marks: {
+          mathematics: 88,
+          english: 85,
+          physical_sciences: 90,
+          life_sciences: 82,
+          accounting: 86,
+          economics: 80
+        },
+        preferred_residences: ['RES001', 'RES002']
       }
     ];
 

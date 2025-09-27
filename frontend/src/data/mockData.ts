@@ -1445,7 +1445,6 @@ export const students: Student[] = [
   {
     id_number: "0123456789",
     username: "thabo.molefe",
-    password: "password123",
     school_id: "SCH001",
     first_name: "Thabo",
     last_name: "Molefe",
@@ -1464,7 +1463,6 @@ export const students: Student[] = [
   {
     id_number: "9876543210",
     username: "sarah.johnson",
-    password: "password456",
     school_id: "SCH002",
     first_name: "Sarah",
     last_name: "Johnson",
@@ -1483,7 +1481,6 @@ export const students: Student[] = [
   {
     id_number: "1234567890",
     username: "aisha.patel",
-    password: "password789",
     school_id: "SCH003",
     first_name: "Aisha",
     last_name: "Patel",
@@ -1502,7 +1499,6 @@ export const students: Student[] = [
   {
     id_number: "5555555555",
     username: "mike.van.der.merwe",
-    password: "password999",
     school_id: "SCH001",
     first_name: "Mike",
     last_name: "van der Merwe",
@@ -1521,7 +1517,6 @@ export const students: Student[] = [
   {
     id_number: "7777777777",
     username: "fatima.ndlovu",
-    password: "password111",
     school_id: "SCH002",
     first_name: "Fatima",
     last_name: "Ndlovu", 
@@ -1541,7 +1536,6 @@ export const students: Student[] = [
   {
     id_number: "1111111111",
     username: "john.smith",
-    password: "password222",
     school_id: "SCH001",
     first_name: "John",
     last_name: "Smith",
@@ -1560,7 +1554,6 @@ export const students: Student[] = [
   {
     id_number: "2222222222",
     username: "mary.wilson",
-    password: "password333",
     school_id: "SCH002",
     first_name: "Mary",
     last_name: "Wilson",
@@ -1579,7 +1572,6 @@ export const students: Student[] = [
   {
     id_number: "3333333333",
     username: "david.brown",
-    password: "password444",
     school_id: "SCH003",
     first_name: "David",
     last_name: "Brown",
@@ -1598,7 +1590,6 @@ export const students: Student[] = [
   {
     id_number: "4444444444",
     username: "lisa.davis",
-    password: "password555",
     school_id: "SCH004",
     first_name: "Lisa",
     last_name: "Davis",
@@ -1617,7 +1608,6 @@ export const students: Student[] = [
   {
     id_number: "6666666666",
     username: "james.miller",
-    password: "password666",
     school_id: "SCH005",
     first_name: "James",
     last_name: "Miller",
@@ -2072,7 +2062,7 @@ export const checkCourseEligibility = (student: Student, course: Course): { elig
   const aps = calculateAPS(student.marks);
   
   if (course.requirements.minimum_aps && aps < course.requirements.minimum_aps) {
-    missing.push(`APS score (need ${course.requirements.minimum_aps}, have ${aps})`);
+    missing.push(`AP score (need ${course.requirements.minimum_aps}, have ${aps})`);
   }
 
   Object.entries(course.requirements).forEach(([subject, required]) => {
@@ -2371,14 +2361,13 @@ export const calculateCompatibilityScore = (student1: Student, student2: Student
 
   // Lifestyle compatibility (weighted)
   const lifestyleFactors = [
-    { field: 'study_habits', weight: 2 },
-    { field: 'cleanliness', weight: 3 },
+   
     { field: 'social_level', weight: 2 },
     { field: 'sleep_schedule', weight: 3 },
     { field: 'music_tolerance', weight: 1 },
     { field: 'party_frequency', weight: 2 },
     { field: 'smoking_preference', weight: 3 },
-    { field: 'pet_preference', weight: 1 }
+
   ];
 
   lifestyleFactors.forEach(({ field, weight }) => {
@@ -2484,14 +2473,14 @@ export const careers: Career[] = [
     description: "Design, develop, and maintain software applications and systems",
     category: "Technology",
     required_courses: ["WITS_CS001"],
-    alternative_courses: ["UCT_ENG001"],
+   
     skills_required: ["Programming", "Problem Solving", "Teamwork", "Communication"],
     average_salary: {
       entry_level: 350000,
       mid_level: 650000,
       senior_level: 1200000
     },
-    job_market_outlook: "excellent",
+    job_market_outlook: "Moderate demand",
     growth_rate: 22,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/it-and-telecommunications/software-developer/"
   },
@@ -2508,7 +2497,7 @@ export const careers: Career[] = [
       mid_level: 800000,
       senior_level: 1500000
     },
-    job_market_outlook: "excellent",
+    job_market_outlook: "Moderate demand",
     growth_rate: 15,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/health/doctor/"
   },
@@ -2525,7 +2514,7 @@ export const careers: Career[] = [
       mid_level: 700000,
       senior_level: 1100000
     },
-    job_market_outlook: "good",
+    job_market_outlook: "High demand",
     growth_rate: 8,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/engineering/civil-engineer/"
   },
@@ -2542,7 +2531,7 @@ export const careers: Career[] = [
       mid_level: 600000,
       senior_level: 1000000
     },
-    job_market_outlook: "moderate",
+    job_market_outlook: "Moderate demand",
     growth_rate: 6,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/legal/lawyer/"
   },
@@ -2559,7 +2548,7 @@ export const careers: Career[] = [
       mid_level: 500000,
       senior_level: 800000
     },
-    job_market_outlook: "good",
+    job_market_outlook: "High demand",
     growth_rate: 12,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/agriculture/agricultural-scientist/"
   },
@@ -2576,7 +2565,7 @@ export const careers: Career[] = [
       mid_level: 550000,
       senior_level: 900000
     },
-    job_market_outlook: "good",
+    job_market_outlook: "High demand",
     growth_rate: 10,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/business/financial-analyst/"
   },
@@ -2593,7 +2582,7 @@ export const careers: Career[] = [
       mid_level: 750000,
       senior_level: 1300000
     },
-    job_market_outlook: "excellent",
+    job_market_outlook: "High demand",
     growth_rate: 25,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/it-and-telecommunications/data-scientist/"
   },
@@ -2610,7 +2599,7 @@ export const careers: Career[] = [
       mid_level: 650000,
       senior_level: 1000000
     },
-    job_market_outlook: "excellent",
+    job_market_outlook: "High demand",
     growth_rate: 18,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/engineering/environmental-engineer/"
   },
@@ -2627,7 +2616,7 @@ export const careers: Career[] = [
       mid_level: 750000,
       senior_level: 1200000
     },
-    job_market_outlook: "good",
+    job_market_outlook: "High demand",
     growth_rate: 16,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/health/veterinarian/"
   },
@@ -2644,7 +2633,7 @@ export const careers: Career[] = [
       mid_level: 800000,
       senior_level: 1300000
     },
-    job_market_outlook: "good",
+    job_market_outlook: "High demand",
     growth_rate: 14,
     learn_more_url: "https://www.careers.govt.nz/jobs-database/engineering/mining-engineer/"
   }
@@ -2679,7 +2668,7 @@ export const getCareerRecommendations = (student: Student): Career[] => {
 
   // Sort by job market outlook and growth rate
   return recommendedCareers.sort((a, b) => {
-    const outlookScore = { excellent: 4, good: 3, moderate: 2, limited: 1 };
+    const outlookScore = { "High demand": 4, "Moderate demand": 3, "Low demand": 2, "Limited demand": 1 };
     const aScore = outlookScore[a.job_market_outlook] + (a.growth_rate / 10);
     const bScore = outlookScore[b.job_market_outlook] + (b.growth_rate / 10);
     return bScore - aScore;
@@ -2695,7 +2684,7 @@ export const getCareersForCourse = (courseId: string): Career[] => {
 
   // Sort by job market outlook and growth rate
   return relevantCareers.sort((a, b) => {
-    const outlookScore = { excellent: 4, good: 3, moderate: 2, limited: 1 };
+    const outlookScore = { "High demand": 4, "Moderate demand": 3, "Low demand": 2, "Limited demand": 1 };
     const aScore = outlookScore[a.job_market_outlook] + (a.growth_rate / 10);
     const bScore = outlookScore[b.job_market_outlook] + (b.growth_rate / 10);
     return bScore - aScore;

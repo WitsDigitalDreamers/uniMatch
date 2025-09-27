@@ -27,44 +27,22 @@ const RoomMatching = () => {
   const { student } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState({
-    study_habits: 0,
-    cleanliness: 0,
+ 
     social_level: 0,
     sleep_schedule: 0,
     music_tolerance: 0,
     party_frequency: 0,
     smoking_preference: 0,
-    pet_preference: 0,
+   
     hobbies: [] as string[],
     interests: [] as string[]
   });
 
   const quizSteps = [
-    {
-      title: "Study Habits",
-      description: "How do you prefer to study?",
-      icon: <Coffee className="w-5 h-5" />,
-      options: [
-        { value: 1, label: "Quiet, alone, library" },
-        { value: 2, label: "Quiet, with background music" },
-        { value: 3, label: "Moderate noise, study groups" },
-        { value: 4, label: "Noisy, social studying" },
-        { value: 5, label: "Anywhere, any time" }
-      ]
-    },
-    {
-      title: "Cleanliness",
-      description: "How clean do you keep your space?",
-      icon: <Home className="w-5 h-5" />,
-      options: [
-        { value: 1, label: "Extremely clean, organized" },
-        { value: 2, label: "Very clean, tidy" },
-        { value: 3, label: "Moderately clean" },
-        { value: 4, label: "Somewhat messy" },
-        { value: 5, label: "Very messy, disorganized" }
-      ]
-    },
+  
     {
       title: "Social Level",
       description: "How social are you?",
@@ -119,16 +97,6 @@ const RoomMatching = () => {
         { value: 1, label: "Non-smoker, prefer smoke-free" },
         { value: 2, label: "Occasional smoker" },
         { value: 3, label: "Regular smoker" }
-      ]
-    },
-    {
-      title: "Pet Preference",
-      description: "How do you feel about pets?",
-      icon: <Heart className="w-5 h-5" />,
-      options: [
-        { value: 1, label: "No pets, prefer pet-free" },
-        { value: 2, label: "Okay with pets" },
-        { value: 3, label: "Want pets, love animals" }
       ]
     }
   ];
@@ -191,19 +159,53 @@ const RoomMatching = () => {
     // In a real app, this would save to the backend
     console.log('Quiz answers:', quizAnswers);
     
-    toast({
-      title: "Quiz Submitted",
-      description: "Your lifestyle preferences have been saved. We'll use this to find compatible roommates!",
-    });
-    
+    setShowConfirmation(true);
     setIsLoading(false);
+  };
+
+  const acceptSubmission = async () => {
+    setIsLoading(true);
+    
+    // Simulate sending data to universities
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Save quiz answers to student profile
+    if (student) {
+      // In a real app, this would update the student's quiz_answers in the database
+      console.log('Saving quiz answers to student profile:', quizAnswers);
+    }
+    
+    setQuizSubmitted(true);
+    setIsLoading(false);
+    
+    toast({
+      title: "Quiz Submitted Successfully",
+      description: "Your lifestyle preferences have been sent to all universities you applied to for residence matching.",
+    });
+  };
+
+  const declineSubmission = () => {
+    setShowConfirmation(false);
+    toast({
+      title: "Submission Cancelled",
+      description: "Your quiz answers have not been submitted. You can complete the quiz again anytime.",
+    });
   };
 
   const isCurrentStepComplete = () => {
     if (currentStep < quizSteps.length) {
       // For quiz steps, check if the corresponding field has a value
       const field = Object.keys(quizAnswers)[currentStep];
-      return quizAnswers[field as keyof typeof quizAnswers] > 0;
+      const value = quizAnswers[field as keyof typeof quizAnswers];
+      // Fix: handle both number and array types, and ensure 0 is not considered complete
+      if (typeof value === "number") {
+        return value > 0;
+      }
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      // If value is undefined or any other type, consider step incomplete
+      return false;
     }
     // For hobbies and interests steps, they are always complete (optional)
     return true;
@@ -213,7 +215,14 @@ const RoomMatching = () => {
     // Check if all required quiz steps are completed
     return quizSteps.every((_, index) => {
       const field = Object.keys(quizAnswers)[index];
-      return quizAnswers[field as keyof typeof quizAnswers] > 0;
+      const value = quizAnswers[field as keyof typeof quizAnswers];
+      if (typeof value === "number") {
+        return value > 0;
+      }
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      return false;
     });
   };
 
@@ -231,17 +240,19 @@ const RoomMatching = () => {
         </p>
       </div>
 
-      {/* Progress */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Step {currentStep + 1} of {quizSteps.length + 2}</span>
-          <span>{Math.round(progress)}% Complete</span>
+      {/* Progress - Only show when not in confirmation or success state */}
+      {!showConfirmation && !quizSubmitted && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Step {currentStep + 1} of {quizSteps.length + 2}</span>
+            <span>{Math.round(progress)}% Complete</span>
+          </div>
+          <Progress value={progress} className="w-full" />
         </div>
-        <Progress value={progress} className="w-full" />
-      </div>
+      )}
 
-      {/* Quiz Steps */}
-      {currentStep < quizSteps.length && (
+      {/* Quiz Steps - Only show when not in confirmation or success state */}
+      {!showConfirmation && !quizSubmitted && currentStep < quizSteps.length && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -271,8 +282,8 @@ const RoomMatching = () => {
         </Card>
       )}
 
-      {/* Hobbies Step */}
-      {currentStep === quizSteps.length && (
+      {/* Hobbies Step - Only show when not in confirmation or success state */}
+      {!showConfirmation && !quizSubmitted && currentStep === quizSteps.length && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -314,8 +325,8 @@ const RoomMatching = () => {
         </Card>
       )}
 
-      {/* Interests Step */}
-      {currentStep === quizSteps.length + 1 && (
+      {/* Interests Step - Only show when not in confirmation or success state */}
+      {!showConfirmation && !quizSubmitted && currentStep === quizSteps.length + 1 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -357,50 +368,196 @@ const RoomMatching = () => {
         </Card>
       )}
 
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={prevStep}
-          disabled={currentStep === 0}
-        >
-          Previous
-        </Button>
-        
-        {currentStep < quizSteps.length + 2 ? (
+      {/* Navigation - Only show when not in confirmation or success state */}
+      {!showConfirmation && !quizSubmitted && (
+        <div className="flex justify-between">
           <Button
-            onClick={nextStep}
-            disabled={!isCurrentStepComplete()}
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 0}
           >
-            Next
+            Previous
           </Button>
-        ) : (
-          <Button
-            onClick={submitQuiz}
-            disabled={!isQuizComplete() || isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Submit Quiz
-              </>
-            )}
-          </Button>
-        )}
-      </div>
+          
+          {currentStep < quizSteps.length + 2 ? (
+            <Button
+              onClick={nextStep}
+              disabled={!isCurrentStepComplete()}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button
+              onClick={submitQuiz}
+              disabled={!isQuizComplete() || isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Submit Quiz
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      )}
 
-      {/* Info Alert */}
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Your answers will be used to match you with compatible roommates. You can update your preferences anytime.
-        </AlertDescription>
-      </Alert>
+      {/* Confirmation Screen */}
+      {showConfirmation && (
+        <Card className="border-2 border-primary">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <CheckCircle className="w-6 h-6" />
+              Confirm Submission
+            </CardTitle>
+            <CardDescription>
+              Please review your information before submitting
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Important:</strong> Your lifestyle preferences and quiz answers will be sent to all universities where you have applied for residence. This information will be used to match you with compatible roommates.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="space-y-4">
+              <h4 className="font-semibold">Your Preferences Summary:</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium">Social Level:</span> {quizSteps[2].options.find(opt => opt.value === quizAnswers.social_level)?.label}
+                </div>
+                <div>
+                  <span className="font-medium">Sleep Schedule:</span> {quizSteps[3].options.find(opt => opt.value === quizAnswers.sleep_schedule)?.label}
+                </div>
+                <div>
+                  <span className="font-medium">Music Tolerance:</span> {quizSteps[4].options.find(opt => opt.value === quizAnswers.music_tolerance)?.label}
+                </div>
+                <div>
+                  <span className="font-medium">Party Frequency:</span> {quizSteps[5].options.find(opt => opt.value === quizAnswers.party_frequency)?.label}
+                </div>
+                <div>
+                  <span className="font-medium">Smoking Preference:</span> {quizSteps[6].options.find(opt => opt.value === quizAnswers.smoking_preference)?.label}
+                </div>
+  
+              </div>
+              
+              {quizAnswers.hobbies.length > 0 && (
+                <div>
+                  <span className="font-medium">Hobbies:</span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {quizAnswers.hobbies.map((hobby) => (
+                      <Badge key={hobby} variant="secondary">{hobby}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {quizAnswers.interests.length > 0 && (
+                <div>
+                  <span className="font-medium">Interests:</span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {quizAnswers.interests.map((interest) => (
+                      <Badge key={interest} variant="secondary">{interest}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex gap-4">
+              <Button
+                onClick={acceptSubmission}
+                disabled={isLoading}
+                className="flex-1"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending to Universities...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Accept & Send to Universities
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={declineSubmission}
+                disabled={isLoading}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Success Screen */}
+      {quizSubmitted && (
+        <Card className="border-2 border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <CheckCircle className="w-6 h-6" />
+              Quiz Submitted Successfully!
+            </CardTitle>
+            <CardDescription>
+              Your lifestyle preferences have been sent to all universities
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-sm text-green-600">
+              <p>✅ Your quiz answers have been submitted</p>
+              <p>✅ Data sent to all universities where you applied for residence</p>
+              <p>✅ Universities will use this information for roommate matching</p>
+              <p>✅ You'll be notified when compatible roommates are found</p>
+            </div>
+            
+            <div className="flex gap-4">
+              <Button
+                onClick={() => {
+                  setQuizSubmitted(false);
+                  setShowConfirmation(false);
+                  setCurrentStep(0);
+                  setQuizAnswers({
+                   
+                    social_level: 0,
+                    sleep_schedule: 0,
+                    music_tolerance: 0,
+                    party_frequency: 0,
+                    smoking_preference: 0,
+               
+                    hobbies: [],
+                    interests: []
+                  });
+                }}
+                variant="outline"
+              >
+                Take Quiz Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Info Alert - Only show when not in confirmation or success state */}
+      {!showConfirmation && !quizSubmitted && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Your answers will be used to match you with compatible roommates. You can update your preferences anytime.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 };

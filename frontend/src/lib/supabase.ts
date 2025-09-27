@@ -16,7 +16,6 @@ export interface Database {
       students: {
         Row: {
           id_number: string
-          user_id: string
           username: string
           first_name: string
           last_name: string
@@ -29,7 +28,6 @@ export interface Database {
         }
         Insert: {
           id_number: string
-          user_id: string
           username: string
           first_name: string
           last_name: string
