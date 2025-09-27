@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { 
   CheckCircle, 
@@ -24,7 +26,11 @@ import {
   DollarSign,
   User,
   Phone,
-  Mail
+  Mail,
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  Loader2
 } from 'lucide-react';
 import { 
   courses, 
@@ -43,6 +49,13 @@ const Courses = () => {
   const [appliedCourses, setAppliedCourses] = useState<string[]>([]);
   const [showModules, setShowModules] = useState<string[]>([]);
   const [showResidences, setShowResidences] = useState<string[]>([]);
+  
+  // Application flow state
+  const [applicationStep, setApplicationStep] = useState<'select' | 'residence' | 'confirm'>('select');
+  const [selectedCourseForApplication, setSelectedCourseForApplication] = useState<typeof courses[0] | null>(null);
+  const [wantsResidence, setWantsResidence] = useState<boolean>(false);
+  const [selectedResidences, setSelectedResidences] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   if (!student) return null;
 
@@ -74,6 +87,72 @@ const Courses = () => {
     const eligibility = checkCourseEligibility(student, course);
     return !eligibility.eligible && eligibility.missing.length > 2;
   });
+
+  // Application flow handlers
+  const startApplication = (course: typeof courses[0]) => {
+    setSelectedCourseForApplication(course);
+    setApplicationStep('select');
+    setWantsResidence(false);
+    setSelectedResidences([]);
+  };
+
+  const handleResidenceChoice = (choice: boolean) => {
+    setWantsResidence(choice);
+    if (choice) {
+      setApplicationStep('residence');
+    } else {
+      setApplicationStep('confirm');
+    }
+  };
+
+  const handleResidenceSelection = (residenceId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedResidences(prev => [...prev, residenceId]);
+    } else {
+      setSelectedResidences(prev => prev.filter(id => id !== residenceId));
+    }
+  };
+
+  const proceedToConfirmation = () => {
+    setApplicationStep('confirm');
+  };
+
+  const submitApplication = async () => {
+    if (!selectedCourseForApplication) return;
+    
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Add to applied courses
+    setAppliedCourses(prev => [...prev, selectedCourseForApplication.course_id]);
+    
+    // Reset application flow
+    setApplicationStep('select');
+    setSelectedCourseForApplication(null);
+    setWantsResidence(false);
+    setSelectedResidences([]);
+    setIsSubmitting(false);
+    
+    // Show success message
+    const residenceText = wantsResidence && selectedResidences.length > 0 
+      ? ` and ${selectedResidences.length} residence(s)`
+      : '';
+    
+    toast({
+      title: "Application Submitted Successfully!",
+      description: `Your application for ${selectedCourseForApplication.name}${residenceText} has been submitted.`,
+    });
+  };
+
+  const resetApplication = () => {
+    setApplicationStep('select');
+    setSelectedCourseForApplication(null);
+    setWantsResidence(false);
+    setSelectedResidences([]);
+    setIsSubmitting(false);
+  };
 
   const CourseCard = ({ course }: { course: typeof courses[0] }) => {
     const university = universities.find(u => u.university_id === course.university_id);
@@ -107,28 +186,7 @@ const Courses = () => {
 
     const handleApply = () => {
       if (!isApplied) {
-        setAppliedCourses(prev => [...prev, course.course_id]);
-        
-        // Get student's preferred residences for this university
-        const universityResidences = student.preferred_residences?.filter(residenceId => {
-          const residence = residences.find(r => r.residence_id === residenceId);
-          return residence && residence.university_id === course.university_id;
-        }) || [];
-        
-        const residenceNames = universityResidences.map(residenceId => {
-          const residence = residences.find(r => r.residence_id === residenceId);
-          return residence?.name;
-        }).filter(Boolean);
-        
-        const residenceText = residenceNames.length > 0 
-          ? ` Preferred residences: ${residenceNames.join(', ')}.`
-          : '';
-        
-        toast({
-          title: "Application Complete",
-          description: `Your application for ${course.name} has been submitted successfully.${residenceText}`,
-          variant: "default",
-        });
+        startApplication(course);
       }
     };
 
@@ -297,7 +355,7 @@ const Courses = () => {
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <DollarSign className="w-3 h-3 text-muted-foreground" />
+                     
                           <span>R {residence.price_per_month.toLocaleString()}/month</span>
                         </div>
                         
@@ -499,6 +557,166 @@ const Courses = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Application Dialog */}
+      <Dialog open={!!selectedCourseForApplication} onOpenChange={(open) => !open && resetApplication()}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Apply for Course</DialogTitle>
+            <DialogDescription>
+              Complete your application for {selectedCourseForApplication?.name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {applicationStep === 'select' && (
+            <div className="space-y-6">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h3 className="font-medium text-blue-900 mb-2">Course Details</h3>
+                <div className="text-sm text-blue-800">
+                  <p><strong>Course:</strong> {selectedCourseForApplication?.name}</p>
+                  <p><strong>University:</strong> {universities.find(u => u.university_id === selectedCourseForApplication?.university_id)?.name}</p>
+                  <p><strong>Faculty:</strong> {selectedCourseForApplication?.faculty}</p>
+                  <p><strong>Estimated Cost:</strong> R{selectedCourseForApplication?.estimated_cost.toLocaleString()}/year</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-medium">Would you like to apply for residence as well?</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleResidenceChoice(true)}
+                    className="h-20 flex flex-col items-center gap-2"
+                  >
+                    <Home className="w-6 h-6" />
+                    <span>Yes, apply for residence</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleResidenceChoice(false)}
+                    className="h-20 flex flex-col items-center gap-2"
+                  >
+                    <BookOpen className="w-6 h-6" />
+                    <span>No, course only</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {applicationStep === 'residence' && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setApplicationStep('select')}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+                <h3 className="font-medium">Select Preferred Residences</h3>
+              </div>
+
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {selectedCourseForApplication?.available_residences?.map(residenceId => {
+                  const residence = residences.find(r => r.residence_id === residenceId);
+                  if (!residence) return null;
+
+                  return (
+                    <div key={residenceId} className="p-4 border rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id={residenceId}
+                          checked={selectedResidences.includes(residenceId)}
+                          onCheckedChange={(checked) => handleResidenceSelection(residenceId, checked as boolean)}
+                        />
+                        <div className="flex-1">
+                          <label htmlFor={residenceId} className="cursor-pointer">
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="font-medium">{residence.name}</h4>
+                              <Badge variant="secondary">{residence.gender}</Badge>
+                            </div>
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4" />
+                                <span>{residence.location}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <DollarSign className="w-4 h-4" />
+                                <span>R{residence.price_per_month.toLocaleString()}/month</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <User className="w-4 h-4" />
+                                <span>Capacity: {residence.capacity} students</span>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={proceedToConfirmation}>
+                  Continue
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {applicationStep === 'confirm' && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setApplicationStep(wantsResidence ? 'residence' : 'select')}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+                <h3 className="font-medium">Confirm Application</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <h4 className="font-medium text-green-900 mb-2">Application Summary</h4>
+                  <div className="text-sm text-green-800 space-y-1">
+                    <p><strong>Course:</strong> {selectedCourseForApplication?.name}</p>
+                    <p><strong>University:</strong> {universities.find(u => u.university_id === selectedCourseForApplication?.university_id)?.name}</p>
+                    {wantsResidence && selectedResidences.length > 0 && (
+                      <div>
+                        <strong>Selected Residences:</strong>
+                        <ul className="ml-4 mt-1">
+                          {selectedResidences.map(residenceId => {
+                            const residence = residences.find(r => r.residence_id === residenceId);
+                            return <li key={residenceId}>• {residence?.name}</li>;
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={resetApplication}>
+                    Cancel
+                  </Button>
+                  <Button onClick={submitApplication} disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Confirm Application
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

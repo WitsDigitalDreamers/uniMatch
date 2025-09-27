@@ -51,7 +51,7 @@ const Dashboard = () => {
       {/* Welcome Section */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">
-          Welcome back, {student.first_name}!
+          Welcome, {student.first_name}!
         </h1>
         <p className="text-muted-foreground">
           Here's an overview of your university application journey.
