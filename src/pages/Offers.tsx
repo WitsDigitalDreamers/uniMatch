@@ -59,6 +59,22 @@ const Offers = () => {
     });
   };
 
+  const rejectAllRemaining = () => {
+    const updatedOffers = offers.map(offer => 
+      offer.status === 'pending' ? { ...offer, status: 'declined' as const } : offer
+    );
+    
+    setOffers(updatedOffers);
+    localStorage.setItem('student_offers', JSON.stringify(updatedOffers));
+    
+    const rejectedCount = pendingOffers.length;
+    toast({
+      title: 'All Offers Rejected',
+      description: `You have declined ${rejectedCount} remaining offer${rejectedCount !== 1 ? 's' : ''}.`,
+      variant: 'destructive',
+    });
+  };
+
   const getOffersByStatus = (status: Offer['status']) => 
     offers.filter(offer => offer.status === status);
 
@@ -253,7 +269,7 @@ const Offers = () => {
             <p className="text-muted-foreground mb-4">
               You haven't received any university offers yet. Keep checking back!
             </p>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => window.location.href = '/courses'}>
               <BookOpen className="w-4 h-4 mr-2" />
               Explore Courses
             </Button>
@@ -264,9 +280,19 @@ const Offers = () => {
       {/* Pending Offers */}
       {pendingOffers.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-warning" />
-            <h2 className="text-xl font-semibold">Pending Offers ({pendingOffers.length})</h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-warning" />
+              <h2 className="text-xl font-semibold">Pending Offers ({pendingOffers.length})</h2>
+            </div>
+            <Button 
+              variant="destructive" 
+              onClick={rejectAllRemaining}
+              className="ml-auto"
+            >
+              <XCircle className="w-4 h-4 mr-2" />
+              Reject All Remaining
+            </Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {pendingOffers.map(offer => (
