@@ -50,6 +50,7 @@ export interface Course {
   points_required: number;
   estimated_cost: number;
   modules: string[];
+  available_residences?: string[]; // Array of residence IDs
 }
 
 export interface Offer {
@@ -62,6 +63,23 @@ export interface Offer {
   deadline: string;
   conditional?: boolean;
   conditions?: string[];
+}
+
+export interface Residence {
+  residence_id: string;
+  name: string;
+  university_id: string;
+  location: string;
+  gender: 'male' | 'female' | 'mixed';
+  price_per_month: number;
+  estimated_annual_cost: number;
+  capacity: number;
+  amenities: string[];
+  distance_from_campus: string;
+  contact_info: {
+    phone: string;
+    email: string;
+  };
 }
 
 export interface Bursary {
@@ -137,7 +155,8 @@ export const courses: Course[] = [
     },
     points_required: 42,
     estimated_cost: 78500,
-    modules: ["Engineering Mathematics 1", "Physics for Engineers", "Chemistry for Engineers", "Engineering Design", "Computer Programming", "Engineering Graphics"]
+    modules: ["Engineering Mathematics 1", "Physics for Engineers", "Chemistry for Engineers", "Engineering Design", "Computer Programming", "Engineering Graphics"],
+    available_residences: ["UCT_RES001", "UCT_RES002", "UCT_RES003"]
   },
   {
     course_id: "UCT_MED001",
@@ -153,7 +172,8 @@ export const courses: Course[] = [
     },
     points_required: 45,
     estimated_cost: 125000,
-    modules: ["Human Anatomy", "Human Physiology", "Biochemistry", "Medical Ethics", "Pathology", "Pharmacology", "Clinical Skills"]
+    modules: ["Human Anatomy", "Human Physiology", "Biochemistry", "Medical Ethics", "Pathology", "Pharmacology", "Clinical Skills"],
+    available_residences: ["UCT_RES001", "UCT_RES002", "UCT_RES003"]
   },
   {
     course_id: "UCT_COM001",
@@ -168,7 +188,8 @@ export const courses: Course[] = [
     },
     points_required: 35,
     estimated_cost: 65000,
-    modules: ["Financial Accounting", "Management Accounting", "Economics", "Business Statistics", "Business Law", "Marketing Management"]
+    modules: ["Financial Accounting", "Management Accounting", "Economics", "Business Statistics", "Business Law", "Marketing Management"],
+    available_residences: ["UCT_RES001", "UCT_RES002", "UCT_RES003"]
   },
   // Wits Courses
   {
@@ -184,7 +205,8 @@ export const courses: Course[] = [
     },
     points_required: 40,
     estimated_cost: 72000,
-    modules: ["Programming Fundamentals", "Data Structures", "Algorithms", "Database Systems", "Software Engineering", "Computer Networks", "Machine Learning"]
+    modules: ["Programming Fundamentals", "Data Structures", "Algorithms", "Database Systems", "Software Engineering", "Computer Networks", "Machine Learning"],
+    available_residences: ["WITS_RES001", "WITS_RES002", "WITS_RES003"]
   },
   {
     course_id: "WITS_LAW001",
@@ -198,7 +220,8 @@ export const courses: Course[] = [
     },
     points_required: 38,
     estimated_cost: 58000,
-    modules: ["Constitutional Law", "Criminal Law", "Contract Law", "Property Law", "Administrative Law", "Commercial Law", "Legal Research"]
+    modules: ["Constitutional Law", "Criminal Law", "Contract Law", "Property Law", "Administrative Law", "Commercial Law", "Legal Research"],
+    available_residences: ["WITS_RES001", "WITS_RES002", "WITS_RES003"]
   },
   // UKZN Courses
   {
@@ -214,7 +237,8 @@ export const courses: Course[] = [
     },
     points_required: 32,
     estimated_cost: 45000,
-    modules: ["Plant Science", "Animal Science", "Soil Science", "Agricultural Economics", "Farm Management", "Crop Production", "Agricultural Technology"]
+    modules: ["Plant Science", "Animal Science", "Soil Science", "Agricultural Economics", "Farm Management", "Crop Production", "Agricultural Technology"],
+    available_residences: ["UKZN_RES001", "UKZN_RES002", "UKZN_RES003"]
   }
 ];
 
@@ -351,6 +375,156 @@ export const bursaries: Bursary[] = [
       additional_criteria: ["Leadership potential", "Entrepreneurial spirit", "Academic excellence"]
     },
     deadline: "2024-10-15"
+  }
+];
+
+export const residences: Residence[] = [
+  // UCT Residences
+  {
+    residence_id: "UCT_RES001",
+    name: "Smuts Hall",
+    university_id: "UCT001",
+    location: "Upper Campus, Rondebosch",
+    gender: "mixed",
+    price_per_month: 4500,
+    estimated_annual_cost: 54000,
+    capacity: 400,
+    amenities: ["Dining hall", "Study rooms", "Laundry facilities", "WiFi", "24/7 security"],
+    distance_from_campus: "On campus",
+    contact_info: {
+      phone: "+27 21 650 3000",
+      email: "smuts.hall@uct.ac.za"
+    }
+  },
+  {
+    residence_id: "UCT_RES002",
+    name: "Fuller Hall",
+    university_id: "UCT001",
+    location: "Lower Campus, Rondebosch",
+    gender: "female",
+    price_per_month: 4200,
+    estimated_annual_cost: 50400,
+    capacity: 200,
+    amenities: ["Dining hall", "Study rooms", "Laundry facilities", "WiFi", "24/7 security", "Gym"],
+    distance_from_campus: "On campus",
+    contact_info: {
+      phone: "+27 21 650 3100",
+      email: "fuller.hall@uct.ac.za"
+    }
+  },
+  {
+    residence_id: "UCT_RES003",
+    name: "Tugwell Hall",
+    university_id: "UCT001",
+    location: "Upper Campus, Rondebosch",
+    gender: "male",
+    price_per_month: 4800,
+    estimated_annual_cost: 57600,
+    capacity: 300,
+    amenities: ["Dining hall", "Study rooms", "Laundry facilities", "WiFi", "24/7 security", "Sports facilities"],
+    distance_from_campus: "On campus",
+    contact_info: {
+      phone: "+27 21 650 3200",
+      email: "tugwell.hall@uct.ac.za"
+    }
+  },
+  // Wits Residences
+  {
+    residence_id: "WITS_RES001",
+    name: "Barnato Hall",
+    university_id: "WITS001",
+    location: "East Campus, Braamfontein",
+    gender: "mixed",
+    price_per_month: 3800,
+    estimated_annual_cost: 45600,
+    capacity: 350,
+    amenities: ["Dining hall", "Study rooms", "Laundry facilities", "WiFi", "24/7 security"],
+    distance_from_campus: "On campus",
+    contact_info: {
+      phone: "+27 11 717 1000",
+      email: "barnato.hall@wits.ac.za"
+    }
+  },
+  {
+    residence_id: "WITS_RES002",
+    name: "David Webster Hall",
+    university_id: "WITS001",
+    location: "West Campus, Braamfontein",
+    gender: "female",
+    price_per_month: 3600,
+    estimated_annual_cost: 43200,
+    capacity: 250,
+    amenities: ["Dining hall", "Study rooms", "Laundry facilities", "WiFi", "24/7 security", "Library access"],
+    distance_from_campus: "On campus",
+    contact_info: {
+      phone: "+27 11 717 1100",
+      email: "david.webster@wits.ac.za"
+    }
+  },
+  {
+    residence_id: "WITS_RES003",
+    name: "Girton Hall",
+    university_id: "WITS001",
+    location: "Central Campus, Braamfontein",
+    gender: "mixed",
+    price_per_month: 4000,
+    estimated_annual_cost: 48000,
+    capacity: 180,
+    amenities: ["Dining hall", "Study rooms", "Laundry facilities", "WiFi", "24/7 security", "Gym", "Swimming pool"],
+    distance_from_campus: "On campus",
+    contact_info: {
+      phone: "+27 11 717 1200",
+      email: "girton.hall@wits.ac.za"
+    }
+  },
+  // UKZN Residences
+  {
+    residence_id: "UKZN_RES001",
+    name: "Howard College Residence",
+    university_id: "UKZN001",
+    location: "Howard College Campus, Durban",
+    gender: "mixed",
+    price_per_month: 3200,
+    estimated_annual_cost: 38400,
+    capacity: 500,
+    amenities: ["Dining hall", "Study rooms", "Laundry facilities", "WiFi", "24/7 security"],
+    distance_from_campus: "On campus",
+    contact_info: {
+      phone: "+27 31 260 1111",
+      email: "howard.residence@ukzn.ac.za"
+    }
+  },
+  {
+    residence_id: "UKZN_RES002",
+    name: "Westville Residence",
+    university_id: "UKZN001",
+    location: "Westville Campus, Durban",
+    gender: "female",
+    price_per_month: 3000,
+    estimated_annual_cost: 36000,
+    capacity: 300,
+    amenities: ["Dining hall", "Study rooms", "Laundry facilities", "WiFi", "24/7 security", "Gym"],
+    distance_from_campus: "On campus",
+    contact_info: {
+      phone: "+27 31 260 2222",
+      email: "westville.residence@ukzn.ac.za"
+    }
+  },
+  {
+    residence_id: "UKZN_RES003",
+    name: "Pietermaritzburg Residence",
+    university_id: "UKZN001",
+    location: "Pietermaritzburg Campus",
+    gender: "mixed",
+    price_per_month: 2800,
+    estimated_annual_cost: 33600,
+    capacity: 400,
+    amenities: ["Dining hall", "Study rooms", "Laundry facilities", "WiFi", "24/7 security"],
+    distance_from_campus: "On campus",
+    contact_info: {
+      phone: "+27 33 260 3333",
+      email: "pmb.residence@ukzn.ac.za"
+    }
   }
 ];
 

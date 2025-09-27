@@ -19,11 +19,17 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
-  Send
+  Send,
+  Home,
+  DollarSign,
+  User,
+  Phone,
+  Mail
 } from 'lucide-react';
 import { 
   courses, 
   universities, 
+  residences,
   checkCourseEligibility, 
   calculateAPS 
 } from '@/data/mockData';
@@ -36,6 +42,7 @@ const Courses = () => {
   const [selectedFaculty, setSelectedFaculty] = useState('all');
   const [appliedCourses, setAppliedCourses] = useState<string[]>([]);
   const [showModules, setShowModules] = useState<string[]>([]);
+  const [showResidences, setShowResidences] = useState<string[]>([]);
   
   if (!student) return null;
 
@@ -73,6 +80,12 @@ const Courses = () => {
     const eligibility = checkCourseEligibility(student, course);
     const isApplied = appliedCourses.includes(course.course_id);
     const isModulesVisible = showModules.includes(course.course_id);
+    const isResidencesVisible = showResidences.includes(course.course_id);
+    
+    // Get available residences for this course
+    const availableResidences = course.available_residences 
+      ? residences.filter(r => course.available_residences!.includes(r.residence_id))
+      : [];
     
     let statusIcon;
     let statusColor;
@@ -105,6 +118,14 @@ const Courses = () => {
 
     const toggleModules = () => {
       setShowModules(prev => 
+        prev.includes(course.course_id) 
+          ? prev.filter(id => id !== course.course_id)
+          : [...prev, course.course_id]
+      );
+    };
+
+    const toggleResidences = () => {
+      setShowResidences(prev => 
         prev.includes(course.course_id) 
           ? prev.filter(id => id !== course.course_id)
           : [...prev, course.course_id]
@@ -230,6 +251,80 @@ const Courses = () => {
               </div>
             </CollapsibleContent>
           </Collapsible>
+
+          {availableResidences.length > 0 && (
+            <Collapsible open={isResidencesVisible} onOpenChange={() => toggleResidences()}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full justify-between">
+                  <div className="flex items-center gap-2">
+                    <Home className="w-4 h-4" />
+                    View Residences ({availableResidences.length})
+                  </div>
+                  {isResidencesVisible ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2">
+                <div className="space-y-3">
+                  {availableResidences.map((residence) => (
+                    <div key={residence.residence_id} className="p-3 bg-muted/30 rounded-lg border">
+                      <div className="flex items-start justify-between mb-2">
+                        <h6 className="text-sm font-medium">{residence.name}</h6>
+                        <Badge variant="secondary" className="text-xs">
+                          {residence.gender}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3 h-3 text-muted-foreground" />
+                          <span>{residence.location}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-3 h-3 text-muted-foreground" />
+                          <span>R {residence.price_per_month.toLocaleString()}/month</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <User className="w-3 h-3 text-muted-foreground" />
+                          <span>Capacity: {residence.capacity} students</span>
+                        </div>
+                        
+                        <div className="pt-2 border-t">
+                          <div className="text-xs font-medium mb-1">Estimated Annual Cost:</div>
+                          <div className="text-sm font-bold text-primary">
+                            R {residence.estimated_annual_cost.toLocaleString()}
+                          </div>
+                        </div>
+                        
+                        <div className="pt-2 border-t">
+                          <div className="text-xs font-medium mb-1">Amenities:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {residence.amenities.map((amenity, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {amenity}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="pt-2 border-t space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-xs">{residence.contact_info.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-xs">{residence.contact_info.email}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
 
           <div className="pt-2">
             <Button 
