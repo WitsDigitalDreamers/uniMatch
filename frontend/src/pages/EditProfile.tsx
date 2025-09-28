@@ -26,6 +26,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { profileService, StudentProfile } from '@/services/profileService';
+import { resumeService } from '@/services/resumeService';
 
 interface ProfileData {
   // Personal Information
@@ -137,6 +138,7 @@ const EditProfile = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('personal');
+  const [isGeneratingResume, setIsGeneratingResume] = useState(false);
 
   // Load existing student data and profile
   useEffect(() => {
@@ -296,6 +298,80 @@ const EditProfile = () => {
         [documentType]: file
       }
     }));
+  };
+
+  const handleGenerateResume = async () => {
+    if (!student) return;
+    
+    setIsGeneratingResume(true);
+    
+    try {
+      // Convert ProfileData to StudentProfile format
+      const studentProfile: StudentProfile = {
+        student_id: student.id_number,
+        contact_number: profileData.contactNumber,
+        date_of_birth: profileData.dateOfBirth,
+        gender: profileData.gender,
+        citizenship: profileData.citizenship,
+        home_address: {
+          province: profileData.homeAddress.province,
+          city: profileData.homeAddress.city,
+          suburb: profileData.homeAddress.suburb,
+          postal_code: profileData.homeAddress.postalCode
+        },
+        high_school_name: profileData.highSchoolName,
+        high_school_address: profileData.highSchoolAddress,
+        year_matriculated: parseInt(profileData.yearMatriculated),
+        matric_type: profileData.matricType,
+        current_institution: profileData.currentInstitution,
+        student_number: profileData.studentNumber,
+        qualification_name: profileData.qualificationName,
+        year_of_study: profileData.yearOfStudy,
+        average_percentage: profileData.averagePercentage,
+        aps_score: profileData.apsScore,
+        subjects_passed: profileData.subjectsPassed,
+        subjects_failed: profileData.subjectsFailed,
+        subjects: profileData.subjects,
+        household_income: profileData.householdIncome,
+        parents_occupation: profileData.parentsOccupation,
+        number_of_dependents: profileData.numberOfDependents,
+        receiving_other_funding: profileData.receivingOtherFunding,
+        funding_source: profileData.fundingSource,
+        guardians: profileData.guardians.map(g => ({
+          full_name: g.fullName,
+          contact_number: g.contactNumber,
+          email: g.email,
+          relationship: g.relationship,
+          employment_status: g.employmentStatus
+        }))
+      };
+
+      // Generate resume using AI
+      const resumeHtml = await resumeService.generateResume(studentProfile, student.id_number, {
+        first_name: student.first_name,
+        last_name: student.last_name,
+        email: student.email
+      });
+      
+      // Download the resume
+      const filename = `${profileData.firstName}_${profileData.lastName}_Resume.html`;
+      resumeService.downloadResume(resumeHtml, filename);
+      
+      toast({
+        title: "Resume Generated Successfully",
+        description: "Your personalized resume has been downloaded.",
+      });
+      
+    } catch (error) {
+      console.error('Error generating resume:', error);
+      toast({
+        title: "Resume Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate resume. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingResume(false);
+    }
   };
 
   const calculateAPS = () => {
@@ -1055,6 +1131,54 @@ const EditProfile = () => {
                         onChange={(e) => e.target.files?.[0] && handleFileUpload('curriculumVitae', e.target.files[0])}
                         className="mt-2"
                       />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Resume Generation Section */}
+                <div className="border-t pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold">AI Resume Generator</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Generate a personalized resume using your profile information and interests
+                        </p>
+                      </div>
+                      <Button
+                        onClick={handleGenerateResume}
+                        disabled={isGeneratingResume || !profileData.firstName || !profileData.lastName}
+                        className="flex items-center gap-2"
+                      >
+                        {isGeneratingResume ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="w-4 h-4" />
+                            Generate Resume
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium mb-1">What's included in your AI-generated resume:</p>
+                          <ul className="list-disc list-inside space-y-1 text-blue-700">
+                            <li>Personal information and contact details</li>
+                            <li>Academic achievements and performance</li>
+                            <li>Subject marks and APS score</li>
+                            <li>Career interests and goals</li>
+                            <li>Skills based on your profile</li>
+                            <li>Professional formatting and structure</li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
