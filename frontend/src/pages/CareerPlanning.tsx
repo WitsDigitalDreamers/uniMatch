@@ -24,7 +24,8 @@ import {
   BarChart3,
   Heart,
   ArrowRight,
-  ChevronRight
+  ChevronRight,
+  CheckCircle
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -42,6 +43,14 @@ const CareerPlanning = () => {
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [courseCareers, setCourseCareers] = useState<Career[]>([]);
   const [selectedCareerForPathway, setSelectedCareerForPathway] = useState<Career | null>(null);
+  
+  // New features state
+  const [comparisonCareers, setComparisonCareers] = useState<Career[]>([]);
+  const [showComparison, setShowComparison] = useState(false);
+  const [selectedCareerForProgression, setSelectedCareerForProgression] = useState<Career | null>(null);
+  const [showProgression, setShowProgression] = useState(false);
+  const [selectedCareerForSkills, setSelectedCareerForSkills] = useState<Career | null>(null);
+  const [showSkillGap, setShowSkillGap] = useState(false);
 
   // Get courses that have corresponding careers
   const getCoursesWithCareers = (): Course[] => {
@@ -267,6 +276,83 @@ const CareerPlanning = () => {
     }
   };
 
+  // Comparison Tool handlers
+  const handleAddToComparison = (career: Career) => {
+    if (comparisonCareers.length < 3 && !comparisonCareers.find(c => c.career_id === career.career_id)) {
+      setComparisonCareers(prev => [...prev, career]);
+      toast({
+        title: "Added to Comparison",
+        description: `${career.name} has been added to your comparison list.`,
+      });
+    } else if (comparisonCareers.length >= 3) {
+      toast({
+        title: "Comparison Full",
+        description: "You can compare up to 3 careers at once. Remove one to add another.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveFromComparison = (careerId: string) => {
+    setComparisonCareers(prev => prev.filter(c => c.career_id !== careerId));
+  };
+
+  const handleClearComparison = () => {
+    setComparisonCareers([]);
+  };
+
+  // Progression Flowchart handlers
+  const handleViewProgression = (career: Career) => {
+    setSelectedCareerForProgression(career);
+    setShowProgression(true);
+  };
+
+  // Skill Gap Analysis handlers
+  const handleViewSkillGap = (career: Career) => {
+    setSelectedCareerForSkills(career);
+    setShowSkillGap(true);
+  };
+
+  const getSkillGapAnalysis = (career: Career) => {
+    if (!student) return { missingSkills: [], existingSkills: [], recommendations: [] };
+
+    const studentSkills = Object.keys(student.marks || {});
+    const careerSkills = career.skills_required;
+    
+    const existingSkills = careerSkills.filter(skill => 
+      studentSkills.some(studentSkill => 
+        studentSkill.toLowerCase().includes(skill.toLowerCase()) ||
+        skill.toLowerCase().includes(studentSkill.toLowerCase())
+      )
+    );
+    
+    const missingSkills = careerSkills.filter(skill => 
+      !existingSkills.includes(skill)
+    );
+
+    const recommendations = missingSkills.map(skill => {
+      const skillRecommendations = {
+        'Programming': 'Take computer science courses and practice coding',
+        'Mathematics': 'Focus on advanced mathematics and statistics',
+        'Communication': 'Join debate clubs and public speaking groups',
+        'Problem Solving': 'Practice with logic puzzles and case studies',
+        'Teamwork': 'Join group projects and team sports',
+        'Leadership': 'Take on leadership roles in school clubs',
+        'Critical Thinking': 'Study philosophy and analytical subjects',
+        'Creativity': 'Engage in arts, design, and creative writing',
+        'Technical Skills': 'Learn relevant software and tools',
+        'Research': 'Conduct independent research projects'
+      };
+      
+      return {
+        skill,
+        recommendation: skillRecommendations[skill as keyof typeof skillRecommendations] || 'Focus on developing this skill through practice and study'
+      };
+    });
+
+    return { existingSkills, missingSkills, recommendations };
+  };
+
   const getOutlookColor = (outlook: Career['job_market_outlook']) => {
     switch (outlook) {
       case 'High demand':
@@ -415,14 +501,35 @@ const CareerPlanning = () => {
 
         {/* Career Tabs */}
         <Tabs value={selectedTab} onValueChange={handleTabChange} className="mb-8">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="all">All Careers</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-between items-center mb-4">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="all">All Careers</TabsTrigger>
+            </TabsList>
+            
+            {comparisonCareers.length > 0 && (
+              <Button 
+                onClick={() => setShowComparison(true)}
+                className="ml-4"
+                variant="outline"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Compare ({comparisonCareers.length})
+              </Button>
+            )}
+          </div>
 
           <TabsContent value="all" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredCareers.map((career) => (
-                <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
+                <CareerCard 
+                  key={career.career_id} 
+                  career={career} 
+                  onSimilarCareers={handleSimilarCareers} 
+                  onViewPathway={handleViewPathway}
+                  onAddToComparison={handleAddToComparison}
+                  onViewProgression={handleViewProgression}
+                  onViewSkillGap={handleViewSkillGap}
+                />
               ))}
             </div>
           </TabsContent>
@@ -440,7 +547,15 @@ const CareerPlanning = () => {
                 </div>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {filteredCareers.map((career) => (
-                    <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
+                    <CareerCard 
+                  key={career.career_id} 
+                  career={career} 
+                  onSimilarCareers={handleSimilarCareers} 
+                  onViewPathway={handleViewPathway}
+                  onAddToComparison={handleAddToComparison}
+                  onViewProgression={handleViewProgression}
+                  onViewSkillGap={handleViewSkillGap}
+                />
                   ))}
                 </div>
               </div>
@@ -456,7 +571,15 @@ const CareerPlanning = () => {
           <TabsContent value="recommended" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredCareers.map((career) => (
-                <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
+                <CareerCard 
+                  key={career.career_id} 
+                  career={career} 
+                  onSimilarCareers={handleSimilarCareers} 
+                  onViewPathway={handleViewPathway}
+                  onAddToComparison={handleAddToComparison}
+                  onViewProgression={handleViewProgression}
+                  onViewSkillGap={handleViewSkillGap}
+                />
               ))}
             </div>
           </TabsContent>
@@ -464,7 +587,15 @@ const CareerPlanning = () => {
           <TabsContent value="high-demand" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredCareers.map((career) => (
-                <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
+                <CareerCard 
+                  key={career.career_id} 
+                  career={career} 
+                  onSimilarCareers={handleSimilarCareers} 
+                  onViewPathway={handleViewPathway}
+                  onAddToComparison={handleAddToComparison}
+                  onViewProgression={handleViewProgression}
+                  onViewSkillGap={handleViewSkillGap}
+                />
               ))}
             </div>
           </TabsContent>
@@ -472,7 +603,15 @@ const CareerPlanning = () => {
           <TabsContent value="high-salary" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredCareers.map((career) => (
-                <CareerCard key={career.career_id} career={career} onSimilarCareers={handleSimilarCareers} onViewPathway={handleViewPathway} />
+                <CareerCard 
+                  key={career.career_id} 
+                  career={career} 
+                  onSimilarCareers={handleSimilarCareers} 
+                  onViewPathway={handleViewPathway}
+                  onAddToComparison={handleAddToComparison}
+                  onViewProgression={handleViewProgression}
+                  onViewSkillGap={handleViewSkillGap}
+                />
               ))}
             </div>
           </TabsContent>
@@ -484,6 +623,33 @@ const CareerPlanning = () => {
         <CareerPathway 
           career={selectedCareerForPathway} 
           onClose={() => setSelectedCareerForPathway(null)} 
+        />
+      )}
+
+      {/* Comparison Tool Modal */}
+      {showComparison && (
+        <ComparisonTool 
+          careers={comparisonCareers}
+          onRemove={handleRemoveFromComparison}
+          onClear={handleClearComparison}
+          onClose={() => setShowComparison(false)}
+        />
+      )}
+
+      {/* Progression Flowchart Modal */}
+      {showProgression && selectedCareerForProgression && (
+        <ProgressionFlowchart 
+          career={selectedCareerForProgression}
+          onClose={() => setShowProgression(false)}
+        />
+      )}
+
+      {/* Skill Gap Analysis Modal */}
+      {showSkillGap && selectedCareerForSkills && (
+        <SkillGapAnalysis 
+          career={selectedCareerForSkills}
+          onClose={() => setShowSkillGap(false)}
+          getSkillGapAnalysis={getSkillGapAnalysis}
         />
       )}
     </div>
@@ -573,7 +739,14 @@ const CareerPathway = ({ career, onClose }: { career: Career; onClose: () => voi
 };
 
 // Career Card Component
-const CareerCard = ({ career, onSimilarCareers, onViewPathway }: { career: Career; onSimilarCareers?: (careerId: string) => void; onViewPathway?: (careerId: string) => void }) => {
+const CareerCard = ({ career, onSimilarCareers, onViewPathway, onAddToComparison, onViewProgression, onViewSkillGap }: { 
+  career: Career; 
+  onSimilarCareers?: (careerId: string) => void; 
+  onViewPathway?: (careerId: string) => void;
+  onAddToComparison?: (career: Career) => void;
+  onViewProgression?: (career: Career) => void;
+  onViewSkillGap?: (career: Career) => void;
+}) => {
   const getOutlookColor = (outlook: Career['job_market_outlook']) => {
     switch (outlook) {
       case 'High demand':
@@ -643,29 +816,368 @@ const CareerCard = ({ career, onSimilarCareers, onViewPathway }: { career: Caree
               >
                 Learn More
               </Button>
-              {onViewPathway && (
+       
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              {onAddToComparison && (
                 <Button 
-                  variant="outline" 
+                  variant="secondary" 
                   size="sm"
-                  onClick={() => onViewPathway(career.career_id)}
+                  onClick={() => onAddToComparison(career)}
                 >
-                  View Pathway
+                  Compare
+                </Button>
+              )}
+              {onViewProgression && (
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={() => onViewProgression(career)}
+                >
+                  Progression
                 </Button>
               )}
             </div>
-            {onSimilarCareers && (
-              <Button 
-                variant="secondary" 
-                className="w-full"
-                onClick={() => onSimilarCareers(career.career_id)}
-              >
-                Similar Careers
-              </Button>
-            )}
+            
+            <div className="grid grid-cols-2 gap-2">
+              {onViewSkillGap && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onViewSkillGap(career)}
+                >
+                  Skill Gap
+                </Button>
+              )}
+           
+            </div>
           </div>
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+// Comparison Tool Component
+const ComparisonTool = ({ careers, onRemove, onClear, onClose }: {
+  careers: Career[];
+  onRemove: (careerId: string) => void;
+  onClear: () => void;
+  onClose: () => void;
+}) => {
+  if (careers.length === 0) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Career Comparison</h2>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClear}>
+                Clear All
+              </Button>
+              <Button variant="outline" onClick={onClose}>
+                Close
+              </Button>
+            </div>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-4 font-semibold">Career</th>
+                  <th className="text-left p-4 font-semibold">Industry</th>
+                  <th className="text-left p-4 font-semibold">Salary (Entry)</th>
+                  <th className="text-left p-4 font-semibold">Growth Rate</th>
+                  <th className="text-left p-4 font-semibold">Job Outlook</th>
+                  <th className="text-left p-4 font-semibold">Skills Required</th>
+                  <th className="text-left p-4 font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {careers.map((career) => (
+                  <tr key={career.career_id} className="border-b hover:bg-gray-50">
+                    <td className="p-4">
+                      <div>
+                        <div className="font-medium">{career.name}</div>
+                        <div className="text-sm text-gray-600">{career.description}</div>
+                      </div>
+                    </td>
+                    <td className="p-4">{career.category}</td>
+                    <td className="p-4">
+                      R{career.average_salary?.entry_level?.toLocaleString() || career.average_salary_entry?.toLocaleString() || 'N/A'}
+                    </td>
+                    <td className="p-4">{career.growth_rate}%</td>
+                    <td className="p-4">
+                      <Badge className={
+                        career.job_market_outlook === 'High demand' ? 'bg-green-100 text-green-800' :
+                        career.job_market_outlook === 'Moderate demand' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }>
+                        {career.job_market_outlook}
+                      </Badge>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-1">
+                        {career.skills_required.slice(0, 3).map((skill, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {skill}
+                          </Badge>
+                        ))}
+                        {career.skills_required.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{career.skills_required.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onRemove(career.career_id)}
+                      >
+                        Remove
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Progression Flowchart Component
+const ProgressionFlowchart = ({ career, onClose }: { career: Career; onClose: () => void }) => {
+  const progressionSteps = [
+    {
+      level: "Entry Level (0-2 years)",
+      title: "Junior/Associate",
+      description: "Learning the basics and gaining foundational experience",
+      skills: career.skills_required.slice(0, 3),
+      salary: career.average_salary?.entry_level || career.average_salary_entry || 0,
+      responsibilities: [
+        "Complete assigned tasks and projects",
+        "Learn company processes and tools",
+        "Seek mentorship and guidance",
+        "Build professional network"
+      ]
+    },
+    {
+      level: "Mid Level (3-7 years)",
+      title: "Professional/Specialist",
+      description: "Taking on more responsibility and developing expertise",
+      skills: career.skills_required.slice(0, 5),
+      salary: career.average_salary?.mid_level || career.average_salary_mid || 0,
+      responsibilities: [
+        "Lead small projects or teams",
+        "Mentor junior colleagues",
+        "Develop specialized knowledge",
+        "Contribute to strategic decisions"
+      ]
+    },
+    {
+      level: "Senior Level (8+ years)",
+      title: "Senior Professional/Manager",
+      description: "Leading teams and making strategic decisions",
+      skills: career.skills_required,
+      salary: career.average_salary?.senior_level || career.average_salary_senior || 0,
+      responsibilities: [
+        "Lead large projects and teams",
+        "Make strategic business decisions",
+        "Mentor and develop others",
+        "Drive innovation and change"
+      ]
+    }
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">{career.name} Career Progression</h2>
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+          
+          <div className="space-y-8">
+            {progressionSteps.map((step, index) => (
+              <div key={index} className="relative">
+                <div className="flex items-start space-x-6">
+                  <div className="flex-shrink-0">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-bold text-lg">{index + 1}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="bg-gray-50 rounded-lg p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-xl font-semibold">{step.title}</h3>
+                          <p className="text-blue-600 font-medium">{step.level}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-green-600">
+                            R{step.salary.toLocaleString()}/year
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <p className="text-gray-600 mb-4">{step.description}</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="font-semibold mb-2">Key Skills</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {step.skills.map((skill, skillIndex) => (
+                              <Badge key={skillIndex} variant="outline">
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-semibold mb-2">Key Responsibilities</h4>
+                          <ul className="text-sm text-gray-600 space-y-1">
+                            {step.responsibilities.map((responsibility, respIndex) => (
+                              <li key={respIndex} className="flex items-start">
+                                <span className="text-blue-500 mr-2">•</span>
+                                {responsibility}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {index < progressionSteps.length - 1 && (
+                  <div className="absolute left-8 top-16 w-0.5 h-8 bg-gray-300"></div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Skill Gap Analysis Component
+const SkillGapAnalysis = ({ career, onClose, getSkillGapAnalysis }: { 
+  career: Career; 
+  onClose: () => void;
+  getSkillGapAnalysis: (career: Career) => { existingSkills: string[]; missingSkills: string[]; recommendations: Array<{skill: string; recommendation: string}> };
+}) => {
+  const { existingSkills, missingSkills, recommendations } = getSkillGapAnalysis(career);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Skill Gap Analysis - {career.name}</h2>
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+          
+          <div className="space-y-6">
+            {/* Skills Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="font-semibold text-green-800 mb-3 flex items-center">
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Skills You Have ({existingSkills.length})
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {existingSkills.length > 0 ? (
+                    existingSkills.map((skill, index) => (
+                      <Badge key={index} className="bg-green-100 text-green-800">
+                        {skill}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-green-600 text-sm">No matching skills found</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h3 className="font-semibold text-red-800 mb-3 flex items-center">
+                  <Target className="w-5 h-5 mr-2" />
+                  Skills to Develop ({missingSkills.length})
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {missingSkills.map((skill, index) => (
+                    <Badge key={index} className="bg-red-100 text-red-800">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Development Recommendations */}
+            {recommendations.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 className="font-semibold text-blue-800 mb-4 flex items-center">
+                  <GraduationCap className="w-5 h-5 mr-2" />
+                  Development Recommendations
+                </h3>
+                <div className="space-y-4">
+                  {recommendations.map((rec, index) => (
+                    <div key={index} className="bg-white rounded-lg p-4 border border-blue-100">
+                      <h4 className="font-medium text-blue-900 mb-2">{rec.skill}</h4>
+                      <p className="text-blue-700 text-sm">{rec.recommendation}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Progress Summary */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <h3 className="font-semibold text-gray-800 mb-4">Progress Summary</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span>Overall Readiness</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full" 
+                        style={{ width: `${(existingSkills.length / career.skills_required.length) * 100}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-medium">
+                      {Math.round((existingSkills.length / career.skills_required.length) * 100)}%
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="text-sm text-gray-600">
+                  You have {existingSkills.length} out of {career.skills_required.length} required skills.
+                  {missingSkills.length > 0 && (
+                    <span> Focus on developing the {missingSkills.length} missing skills to improve your readiness for this career.</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
