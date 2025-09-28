@@ -264,11 +264,6 @@ const Courses = () => {
             <Badge variant="secondary">{course.faculty}</Badge>
             <Badge variant="outline">{university?.location}</Badge>
           </div>
-
-          <div className="p-3 small-muted/50 rounded-lg">
-            <div className="text-sm font-small text-foreground mb-1">Estimated Annual Cost</div>
-            <div className="text-lg font-semibold text-primary">R {course.estimated_cost.toLocaleString()}</div>
-          </div>
           
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Requirements:</h4>
@@ -358,7 +353,12 @@ const Courses = () => {
                     </li>
                   ))}
                 </ul>
+                
+                <h5 className="text-sm font-medium mb-2">Estimated Annual Cost:</h5>
+                <div className="text-sm font-semibold text-primary">R {course.estimated_cost.toLocaleString()}</div>
+              
               </div>
+             
             </CollapsibleContent>
           </Collapsible>
 
