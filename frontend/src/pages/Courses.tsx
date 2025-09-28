@@ -265,9 +265,9 @@ const Courses = () => {
             <Badge variant="outline">{university?.location}</Badge>
           </div>
 
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <div className="text-sm font-medium text-foreground mb-1">Estimated Annual Cost</div>
-            <div className="text-lg font-bold text-primary">R {course.estimated_cost.toLocaleString()}</div>
+          <div className="p-3 small-muted/50 rounded-lg">
+            <div className="text-sm font-small text-foreground mb-1">Estimated Annual Cost</div>
+            <div className="text-lg font-semibold text-primary">R {course.estimated_cost.toLocaleString()}</div>
           </div>
           
           <div className="space-y-2">
@@ -337,7 +337,7 @@ const Courses = () => {
             )}
           </div>
 
-          <Collapsible open={isModulesVisible} onOpenChange={() => toggleModules()}>
+          <Collapsible open={isModulesVisible} onOpenChange={toggleModules}>
             <CollapsibleTrigger asChild>
               <Button variant="outline" size="sm" className="w-full justify-between">
                 <div className="flex items-center gap-2">
@@ -363,7 +363,7 @@ const Courses = () => {
           </Collapsible>
 
           {availableResidences.length > 0 && (
-            <Collapsible open={isResidencesVisible} onOpenChange={() => toggleResidences()}>
+            <Collapsible open={isResidencesVisible} onOpenChange={toggleResidences}>
               <CollapsibleTrigger asChild>
                 <Button variant="outline" size="sm" className="w-full justify-between">
                   <div className="flex items-center gap-2">

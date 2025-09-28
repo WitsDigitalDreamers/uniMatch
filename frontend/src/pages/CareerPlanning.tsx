@@ -234,33 +234,6 @@ const CareerPlanning = () => {
     }
   };
 
-  const addInterest = () => {
-    if (newInterest.trim() && !studentInterests.includes(newInterest.trim())) {
-      const updatedInterests = [...studentInterests, newInterest.trim()];
-      setStudentInterests(updatedInterests);
-      if (student) {
-        careersService.saveStudentInterests(student.id_number, updatedInterests);
-      }
-      setNewInterest('');
-      toast({
-        title: "Interest Added",
-        description: "Your interest has been added to your profile.",
-      });
-    }
-  };
-
-  const removeInterest = (interest: string) => {
-    const updatedInterests = studentInterests.filter(i => i !== interest);
-    setStudentInterests(updatedInterests);
-    if (student) {
-      careersService.saveStudentInterests(student.id_number, updatedInterests);
-    }
-    toast({
-      title: "Interest Removed",
-      description: "Interest has been removed from your profile.",
-    });
-  };
-
   const handleSimilarCareers = (careerId: string) => {
     const targetCareer = careers.find(c => c.career_id === careerId);
     if (targetCareer) {

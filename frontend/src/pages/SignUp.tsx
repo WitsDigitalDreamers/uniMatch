@@ -242,17 +242,17 @@ const SignUp = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
             <div className="space-y-2">
               <Users className="w-8 h-8 mx-auto mb-2 text-white/80" />
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">20+</div>
               <div className="text-sm text-white/70">Universities</div>
             </div>
             <div className="space-y-2">
               <BookOpen className="w-8 h-8 mx-auto mb-2 text-white/80" />
-              <div className="text-2xl font-bold">6+</div>
+              <div className="text-2xl font-bold">50+</div>
               <div className="text-sm text-white/70">Courses</div>
             </div>
             <div className="space-y-2">
               <Award className="w-8 h-8 mx-auto mb-2 text-white/80" />
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">150</div>
               <div className="text-sm text-white/70">Scholarships</div>
             </div>
           </div>
