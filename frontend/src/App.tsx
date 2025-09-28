@@ -14,6 +14,7 @@ import Offers from "./pages/Offers";
 import Scholarships from "./pages/Scholarships";
 import RoomMatching from "./pages/RoomMatching";
 import CareerPlanning from "./pages/CareerPlanning";
+import Chat from "./pages/Chat";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,7 @@ const AppRoutes = () => {
             <Route path="/room-matching" element={<RoomMatching />} />
             <Route path="/career-planning" element={<CareerPlanning />} />
             <Route path="/edit-profile" element={<EditProfile />} />
+            <Route path="/chat" element={<Chat />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

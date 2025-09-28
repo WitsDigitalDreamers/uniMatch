@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
   Filter, 
@@ -54,11 +55,7 @@ const CareerPlanning = () => {
   const [showSkillGap, setShowSkillGap] = useState(false);
 
   // Chatbot state
-  const [chatOpen, setChatOpen] = useState(false);
-  const [selectedCareerForChat, setSelectedCareerForChat] = useState<Career | null>(null);
-  const [messages, setMessages] = useState<Array<{ role: 'bot' | 'user'; content: string }>>([]);
-  const [userInput, setUserInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const navigate = useNavigate();
 
   // Get courses that have corresponding careers
   const getCoursesWithCareers = (): Course[] => {
@@ -322,10 +319,7 @@ const CareerPlanning = () => {
   };
 
   const handleOpenChat = (career: Career) => {
-    setSelectedCareerForChat(career);
-    const welcome = `Hi! I'm your career assistant. What would you like to know about ${career.name}?`;
-    setMessages([{ role: 'bot', content: welcome }]);
-    setChatOpen(true);
+    navigate(`/chat?careerId=${encodeURIComponent(career.career_id)}`);
   };
 
   const generateChatResponse = (question: string, career: Career): string => {
@@ -393,36 +387,7 @@ const CareerPlanning = () => {
     return parts.join('\n');
   };
 
-  const sendMessage = () => {
-    if (!selectedCareerForChat || !userInput.trim()) return;
-    const question = userInput.trim();
-    setMessages(prev => [...prev, { role: 'user', content: question }]);
-    setUserInput('');
-    setIsTyping(true);
-    // Try cloud model via backend; fallback to local generator
-    fetch(import.meta.env.VITE_CHAT_API_URL || 'http://localhost:5001/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system: `You are a helpful career assistant. Be concise and use the provided career context when relevant. Career: ${selectedCareerForChat.name}.`,
-        messages: [
-          { role: 'user', content: question }
-        ]
-      })
-    })
-    .then(async (r) => {
-      if (!r.ok) throw new Error('chat api error');
-      const data = await r.json();
-      const content = data?.content as string | undefined;
-      if (!content) throw new Error('no content');
-      setMessages(prev => [...prev, { role: 'bot', content }]);
-    })
-    .catch(() => {
-      const fallback = generateChatResponse(question, selectedCareerForChat);
-      setMessages(prev => [...prev, { role: 'bot', content: fallback }]);
-    })
-    .finally(() => setIsTyping(false));
-  };
+  const sendMessage = () => {};
 
   const getSkillGapAnalysis = (career: Career) => {
     if (!student) return { missingSkills: [], existingSkills: [], recommendations: [] };
@@ -769,34 +734,7 @@ const CareerPlanning = () => {
         />
       )}
 
-      {/* Chatbot Modal */}
-      <Dialog open={chatOpen} onOpenChange={setChatOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Career Assistant {selectedCareerForChat ? `— ${selectedCareerForChat.name}` : ''}</DialogTitle>
-            <DialogDescription>Ask about requirements, APS, universities, salary, outlook, or skills.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {messages.map((m, idx) => (
-              <div key={idx} className={m.role === 'bot' ? 'bg-muted rounded-md p-3 text-sm' : 'text-sm p-3 border rounded-md'}>
-                {m.content}
-              </div>
-            ))}
-            {isTyping && (
-              <div className="text-xs text-muted-foreground">Assistant is typing…</div>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Type your question..."
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
-            />
-            <Button onClick={sendMessage} disabled={!userInput.trim() || isTyping}>Send</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Chat moved to dedicated page at /chat */}
     </div>
   );
 };

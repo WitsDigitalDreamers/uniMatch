@@ -10,7 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002;
 const ENDPOINT = process.env.AZURE_INFERENCE_ENDPOINT;
 const DEFAULT_MODEL = 'openai/gpt-4o-mini';
 const MODEL = process.env.AZURE_INFERENCE_MODEL || DEFAULT_MODEL;
