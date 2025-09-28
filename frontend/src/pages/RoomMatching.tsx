@@ -139,7 +139,7 @@ const RoomMatching = () => {
   };
 
   const nextStep = () => {
-    if (currentStep < quizSteps.length - 1) {
+    if (currentStep < quizSteps.length + 1) {
       setCurrentStep(prev => prev + 1);
     }
   };
@@ -194,33 +194,31 @@ const RoomMatching = () => {
 
   const isCurrentStepComplete = () => {
     if (currentStep < quizSteps.length) {
-      // For quiz steps, check if the corresponding field has a value
-      const field = Object.keys(quizAnswers)[currentStep];
-      const value = quizAnswers[field as keyof typeof quizAnswers];
-      // Fix: handle both number and array types, and ensure 0 is not considered complete
+      // For quiz steps, check the specific field for this step
+      const stepField = quizSteps[currentStep].title.toLowerCase().replace(/\s+/g, '_') as keyof typeof quizAnswers;
+      const value = quizAnswers[stepField];
+      
       if (typeof value === "number") {
         return value > 0;
       }
-      if (Array.isArray(value)) {
-        return value.length > 0;
-      }
-      // If value is undefined or any other type, consider step incomplete
       return false;
+    } else if (currentStep === quizSteps.length) {
+      // Hobbies step - always complete (optional)
+      return true;
+    } else if (currentStep === quizSteps.length + 1) {
+      // Interests step - always complete (optional)
+      return true;
     }
-    // For hobbies and interests steps, they are always complete (optional)
-    return true;
+    return false;
   };
 
   const isQuizComplete = () => {
     // Check if all required quiz steps are completed
-    return quizSteps.every((_, index) => {
-      const field = Object.keys(quizAnswers)[index];
-      const value = quizAnswers[field as keyof typeof quizAnswers];
+    return quizSteps.every((step, index) => {
+      const stepField = step.title.toLowerCase().replace(/\s+/g, '_') as keyof typeof quizAnswers;
+      const value = quizAnswers[stepField];
       if (typeof value === "number") {
         return value > 0;
-      }
-      if (Array.isArray(value)) {
-        return value.length > 0;
       }
       return false;
     });
@@ -379,7 +377,7 @@ const RoomMatching = () => {
             Previous
           </Button>
           
-          {currentStep < quizSteps.length + 2 ? (
+          {currentStep < quizSteps.length + 1 ? (
             <Button
               onClick={nextStep}
               disabled={!isCurrentStepComplete()}
@@ -431,19 +429,19 @@ const RoomMatching = () => {
               <h4 className="font-semibold">Your Preferences Summary:</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-medium">Social Level:</span> {quizSteps[2].options.find(opt => opt.value === quizAnswers.social_level)?.label}
+                  <span className="font-medium">Social Level:</span> {quizSteps[0].options.find(opt => opt.value === quizAnswers.social_level)?.label}
                 </div>
                 <div>
-                  <span className="font-medium">Sleep Schedule:</span> {quizSteps[3].options.find(opt => opt.value === quizAnswers.sleep_schedule)?.label}
+                  <span className="font-medium">Sleep Schedule:</span> {quizSteps[1].options.find(opt => opt.value === quizAnswers.sleep_schedule)?.label}
                 </div>
                 <div>
-                  <span className="font-medium">Music Tolerance:</span> {quizSteps[4].options.find(opt => opt.value === quizAnswers.music_tolerance)?.label}
+                  <span className="font-medium">Music Tolerance:</span> {quizSteps[2].options.find(opt => opt.value === quizAnswers.music_tolerance)?.label}
                 </div>
                 <div>
-                  <span className="font-medium">Party Frequency:</span> {quizSteps[5].options.find(opt => opt.value === quizAnswers.party_frequency)?.label}
+                  <span className="font-medium">Party Frequency:</span> {quizSteps[3].options.find(opt => opt.value === quizAnswers.party_frequency)?.label}
                 </div>
                 <div>
-                  <span className="font-medium">Smoking Preference:</span> {quizSteps[6].options.find(opt => opt.value === quizAnswers.smoking_preference)?.label}
+                  <span className="font-medium">Smoking Preference:</span> {quizSteps[4].options.find(opt => opt.value === quizAnswers.smoking_preference)?.label}
                 </div>
   
               </div>
