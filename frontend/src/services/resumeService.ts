@@ -1,5 +1,6 @@
 import { StudentProfile } from './profileService';
 import { careersService } from './careersService';
+import { quizService } from './quizService';
 
 export interface ResumeData {
   personalInfo: {
@@ -43,9 +44,10 @@ class ResumeService {
   // Generate resume using AI model
   async generateResume(studentProfile: StudentProfile, studentId: string, studentInfo?: { first_name?: string; last_name?: string; email?: string }): Promise<string> {
     try {
-      // Get student interests and hobbies from careers service
-      const interests = careersService.getStudentInterests(studentId) || [];
-      const hobbies = this.extractHobbiesFromProfile(studentProfile);
+      // Get student interests and hobbies from quiz data (database)
+      const quizData = await quizService.getQuizAnswers(studentId);
+      const interests = quizData?.interests || [];
+      const hobbies = quizData?.hobbies || [];
       
       // Prepare resume data
       const resumeData: ResumeData = {
@@ -92,17 +94,28 @@ Guidelines:
 - Keep it concise but comprehensive
 - Use professional language appropriate for a student
 - Include relevant keywords for the student's field of interest
-- Format as a complete HTML document with embedded CSS for styling`;
+- Format as a complete HTML document with embedded CSS for styling
+- Use quiz data to enhance personality and lifestyle insights`;
 
       const userPrompt = `Please generate a professional resume for this student:
 
 ${JSON.stringify(resumeData, null, 2)}
+
+Additional Lifestyle & Personality Data from Quiz:
+${quizData ? `
+- Social Level: ${quizData.social_level}/5 (1=Very introverted, 5=Very extroverted)
+- Sleep Schedule: ${quizData.sleep_schedule}/3 (1=Early bird, 2=Normal, 3=Night owl)
+- Music Tolerance: ${quizData.music_tolerance}/5 (1=Prefer silence, 5=Love loud music)
+- Party Frequency: ${quizData.party_frequency}/5 (1=Never, 5=Very often)
+- Smoking Preference: ${quizData.smoking_preference}/3 (1=Non-smoker, 2=Occasional, 3=Regular)
+` : 'No quiz data available'}
 
 Requirements:
 - Format as a complete HTML document with embedded CSS
 - Use a clean, professional design
 - Include all provided information in appropriate sections
 - Highlight academic achievements and relevant skills
+- Use lifestyle data to enhance personality insights where appropriate
 - Make it suitable for university applications and job applications
 - Ensure it's well-structured and easy to read`;
 

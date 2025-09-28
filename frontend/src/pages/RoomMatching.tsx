@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState ,useEffect} from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,21 +22,21 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { quizService, QuizAnswers } from '@/services/quizService';
 
 const RoomMatching = () => {
   const { student } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingQuiz, setIsLoadingQuiz] = useState(true);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState({
- 
     social_level: 0,
     sleep_schedule: 0,
     music_tolerance: 0,
     party_frequency: 0,
     smoking_preference: 0,
-   
     hobbies: [] as string[],
     interests: [] as string[]
   });
@@ -113,6 +113,43 @@ const RoomMatching = () => {
     "Philosophy", "Psychology", "Economics", "Literature", "Music", "Film"
   ];
 
+  // Load existing quiz data on component mount
+  useEffect(() => {
+    const loadQuizData = async () => {
+      if (!student) {
+        setIsLoadingQuiz(false);
+        return;
+      }
+
+      try {
+        const existingQuiz = await quizService.getQuizAnswers(student.id_number);
+        if (existingQuiz) {
+          setQuizAnswers({
+            social_level: existingQuiz.social_level,
+            sleep_schedule: existingQuiz.sleep_schedule,
+            music_tolerance: existingQuiz.music_tolerance,
+            party_frequency: existingQuiz.party_frequency,
+            smoking_preference: existingQuiz.smoking_preference,
+            hobbies: existingQuiz.hobbies || [],
+            interests: existingQuiz.interests || []
+          });
+          setQuizSubmitted(true);
+        }
+      } catch (error) {
+        console.error('Error loading quiz data:', error);
+        toast({
+          title: "Error Loading Quiz",
+          description: "Failed to load your previous quiz answers. You can start fresh.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoadingQuiz(false);
+      }
+    };
+
+    loadQuizData();
+  }, [student]);
+
   const handleAnswerChange = (field: string, value: number) => {
     setQuizAnswers(prev => ({
       ...prev,
@@ -151,37 +188,62 @@ const RoomMatching = () => {
   };
 
   const submitQuiz = async () => {
+    if (!student) return;
+    
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // In a real app, this would save to the backend
-    console.log('Quiz answers:', quizAnswers);
-    
-    setShowConfirmation(true);
-    setIsLoading(false);
+    try {
+      // Save quiz answers to database
+      await quizService.saveQuizAnswers(student.id_number, {
+        social_level: quizAnswers.social_level,
+        sleep_schedule: quizAnswers.sleep_schedule,
+        music_tolerance: quizAnswers.music_tolerance,
+        party_frequency: quizAnswers.party_frequency,
+        smoking_preference: quizAnswers.smoking_preference,
+        hobbies: quizAnswers.hobbies,
+        interests: quizAnswers.interests
+      });
+      
+      setShowConfirmation(true);
+      
+      toast({
+        title: "Quiz Saved Successfully",
+        description: "Your lifestyle preferences have been saved to your profile.",
+      });
+    } catch (error) {
+      console.error('Error saving quiz:', error);
+      toast({
+        title: "Error Saving Quiz",
+        description: "Failed to save your quiz answers. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const acceptSubmission = async () => {
     setIsLoading(true);
     
-    // Simulate sending data to universities
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Save quiz answers to student profile
-    if (student) {
-      // In a real app, this would update the student's quiz_answers in the database
-      console.log('Saving quiz answers to student profile:', quizAnswers);
+    try {
+      // Quiz is already saved in submitQuiz, just mark as submitted
+      setQuizSubmitted(true);
+      setShowConfirmation(false);
+      
+      toast({
+        title: "Quiz Submitted Successfully",
+        description: "Your lifestyle preferences have been saved and will be used for roommate matching.",
+      });
+    } catch (error) {
+      console.error('Error finalizing quiz submission:', error);
+      toast({
+        title: "Error",
+        description: "There was an issue finalizing your quiz submission.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setQuizSubmitted(true);
-    setIsLoading(false);
-    
-    toast({
-      title: "Quiz Submitted Successfully",
-      description: "Your lifestyle preferences have been sent to all universities you applied to for residence matching.",
-    });
   };
 
   const declineSubmission = () => {
@@ -225,6 +287,18 @@ const RoomMatching = () => {
   };
 
   if (!student) return null;
+
+  // Show loading state while fetching existing quiz data
+  if (isLoadingQuiz) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading your quiz data...</p>
+        </div>
+      </div>
+    );
+  }
 
   const progress = ((currentStep + 1) / (quizSteps.length + 2)) * 100; // +2 for hobbies and interests
 
