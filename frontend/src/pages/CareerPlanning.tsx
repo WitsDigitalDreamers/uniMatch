@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { careersService } from '@/services/careersService';
 import { Career, Course } from '@/types';
-import { courses } from '@/data/mockData';
+import { courses, universities, checkCourseEligibility } from '@/data/mockData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Search, 
   Filter, 
@@ -51,6 +52,13 @@ const CareerPlanning = () => {
   const [showProgression, setShowProgression] = useState(false);
   const [selectedCareerForSkills, setSelectedCareerForSkills] = useState<Career | null>(null);
   const [showSkillGap, setShowSkillGap] = useState(false);
+
+  // Chatbot state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedCareerForChat, setSelectedCareerForChat] = useState<Career | null>(null);
+  const [messages, setMessages] = useState<Array<{ role: 'bot' | 'user'; content: string }>>([]);
+  const [userInput, setUserInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
   // Get courses that have corresponding careers
   const getCoursesWithCareers = (): Course[] => {
@@ -313,6 +321,109 @@ const CareerPlanning = () => {
     setShowSkillGap(true);
   };
 
+  const handleOpenChat = (career: Career) => {
+    setSelectedCareerForChat(career);
+    const welcome = `Hi! I'm your career assistant. What would you like to know about ${career.name}?`;
+    setMessages([{ role: 'bot', content: welcome }]);
+    setChatOpen(true);
+  };
+
+  const generateChatResponse = (question: string, career: Career): string => {
+    const q = question.toLowerCase();
+    const parts: string[] = [];
+
+    // Basics
+    parts.push(`${career.name}: ${career.description}`);
+
+    // Requirements and courses
+    const requiredCourseIds = career.required_courses || [];
+    const altCourseIds = career.alternative_courses || [];
+    const relatedCourses = courses.filter(c => requiredCourseIds.includes(c.course_id) || altCourseIds.includes(c.course_id));
+
+    if (q.includes('require') || q.includes('subject') || q.includes('aps') || q.includes('eligib')) {
+      const reqSummaries = relatedCourses.slice(0, 3).map(c => {
+        const reqs: string[] = [];
+        if (c.requirements.minimum_aps) reqs.push(`APS ≥ ${c.requirements.minimum_aps}`);
+        (['mathematics','english','physical_sciences','life_sciences','accounting','economics'] as const).forEach(sub => {
+          const r = c.requirements[sub as keyof typeof c.requirements] as number | undefined;
+          if (typeof r === 'number') reqs.push(`${sub.replace('_',' ')} ≥ ${r}%`);
+        });
+        return `- ${c.name}: ${reqs.join(', ') || 'See prospectus'}`;
+      });
+      parts.push('Typical entry requirements (examples):');
+      parts.push(...reqSummaries);
+      if (student) {
+        const eligibility = relatedCourses.map(c => {
+          const e = checkCourseEligibility(student, c);
+          return `• ${c.name}: ${e.eligible ? 'Eligible' : `Not yet (missing: ${e.missing.slice(0,2).join('; ') || 'requirements'})`}`;
+        }).slice(0, 3);
+        parts.push('Your current fit:');
+        parts.push(...eligibility);
+      }
+    }
+
+    // Universities
+    if (q.includes('university') || q.includes('where') || q.includes('offer')) {
+      const uniNames = Array.from(new Set(relatedCourses.map(c => universities.find(u => u.university_id === c.university_id)?.name).filter(Boolean))).slice(0, 5);
+      if (uniNames.length) parts.push(`Universities offering relevant programs: ${uniNames.join(', ')}.`);
+    }
+
+    // Salary / outlook
+    if (q.includes('salary') || q.includes('pay') || q.includes('money')) {
+      const entry = career.average_salary?.entry_level || career.average_salary_entry;
+      const mid = career.average_salary?.mid_level || career.average_salary_mid;
+      const senior = career.average_salary?.senior_level || career.average_salary_senior;
+      const salaryParts = [entry && `Entry ~ R${entry.toLocaleString()}`, mid && `Mid ~ R${mid.toLocaleString()}`, senior && `Senior ~ R${senior.toLocaleString()}`].filter(Boolean) as string[];
+      if (salaryParts.length) parts.push(`Typical salaries: ${salaryParts.join(' | ')}`);
+    }
+    if (q.includes('outlook') || q.includes('demand') || q.includes('growth')) {
+      parts.push(`Job outlook: ${career.job_market_outlook}${career.growth_rate ? `, growth rate ~ ${career.growth_rate}%` : ''}.`);
+    }
+
+    // Skills
+    if (q.includes('skill') || q.includes('need to learn')) {
+      const skills = (career.skills_required || []).slice(0, 6);
+      if (skills.length) parts.push(`Key skills: ${skills.join(', ')}.`);
+    }
+
+    // Fallback
+    if (parts.length <= 1) {
+      parts.push('Ask about requirements, APS, universities, salary, outlook, or skills.');
+    }
+    return parts.join('\n');
+  };
+
+  const sendMessage = () => {
+    if (!selectedCareerForChat || !userInput.trim()) return;
+    const question = userInput.trim();
+    setMessages(prev => [...prev, { role: 'user', content: question }]);
+    setUserInput('');
+    setIsTyping(true);
+    // Try cloud model via backend; fallback to local generator
+    fetch(import.meta.env.VITE_CHAT_API_URL || 'http://localhost:5001/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: `You are a helpful career assistant. Be concise and use the provided career context when relevant. Career: ${selectedCareerForChat.name}.`,
+        messages: [
+          { role: 'user', content: question }
+        ]
+      })
+    })
+    .then(async (r) => {
+      if (!r.ok) throw new Error('chat api error');
+      const data = await r.json();
+      const content = data?.content as string | undefined;
+      if (!content) throw new Error('no content');
+      setMessages(prev => [...prev, { role: 'bot', content }]);
+    })
+    .catch(() => {
+      const fallback = generateChatResponse(question, selectedCareerForChat);
+      setMessages(prev => [...prev, { role: 'bot', content: fallback }]);
+    })
+    .finally(() => setIsTyping(false));
+  };
+
   const getSkillGapAnalysis = (career: Career) => {
     if (!student) return { missingSkills: [], existingSkills: [], recommendations: [] };
 
@@ -529,6 +640,7 @@ const CareerPlanning = () => {
                   onAddToComparison={handleAddToComparison}
                   onViewProgression={handleViewProgression}
                   onViewSkillGap={handleViewSkillGap}
+                  onOpenChat={handleOpenChat}
                 />
               ))}
             </div>
@@ -555,6 +667,7 @@ const CareerPlanning = () => {
                   onAddToComparison={handleAddToComparison}
                   onViewProgression={handleViewProgression}
                   onViewSkillGap={handleViewSkillGap}
+                  onOpenChat={handleOpenChat}
                 />
                   ))}
                 </div>
@@ -579,6 +692,7 @@ const CareerPlanning = () => {
                   onAddToComparison={handleAddToComparison}
                   onViewProgression={handleViewProgression}
                   onViewSkillGap={handleViewSkillGap}
+                  onOpenChat={handleOpenChat}
                 />
               ))}
             </div>
@@ -595,6 +709,7 @@ const CareerPlanning = () => {
                   onAddToComparison={handleAddToComparison}
                   onViewProgression={handleViewProgression}
                   onViewSkillGap={handleViewSkillGap}
+                  onOpenChat={handleOpenChat}
                 />
               ))}
             </div>
@@ -611,6 +726,7 @@ const CareerPlanning = () => {
                   onAddToComparison={handleAddToComparison}
                   onViewProgression={handleViewProgression}
                   onViewSkillGap={handleViewSkillGap}
+                  onOpenChat={handleOpenChat}
                 />
               ))}
             </div>
@@ -652,6 +768,35 @@ const CareerPlanning = () => {
           getSkillGapAnalysis={getSkillGapAnalysis}
         />
       )}
+
+      {/* Chatbot Modal */}
+      <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Career Assistant {selectedCareerForChat ? `— ${selectedCareerForChat.name}` : ''}</DialogTitle>
+            <DialogDescription>Ask about requirements, APS, universities, salary, outlook, or skills.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {messages.map((m, idx) => (
+              <div key={idx} className={m.role === 'bot' ? 'bg-muted rounded-md p-3 text-sm' : 'text-sm p-3 border rounded-md'}>
+                {m.content}
+              </div>
+            ))}
+            {isTyping && (
+              <div className="text-xs text-muted-foreground">Assistant is typing…</div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Type your question..."
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
+            />
+            <Button onClick={sendMessage} disabled={!userInput.trim() || isTyping}>Send</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -739,13 +884,14 @@ const CareerPathway = ({ career, onClose }: { career: Career; onClose: () => voi
 };
 
 // Career Card Component
-const CareerCard = ({ career, onSimilarCareers, onViewPathway, onAddToComparison, onViewProgression, onViewSkillGap }: { 
+const CareerCard = ({ career, onSimilarCareers, onViewPathway, onAddToComparison, onViewProgression, onViewSkillGap, onOpenChat }: { 
   career: Career; 
   onSimilarCareers?: (careerId: string) => void; 
   onViewPathway?: (careerId: string) => void;
   onAddToComparison?: (career: Career) => void;
   onViewProgression?: (career: Career) => void;
   onViewSkillGap?: (career: Career) => void;
+  onOpenChat?: (career: Career) => void;
 }) => {
   const getOutlookColor = (outlook: Career['job_market_outlook']) => {
     switch (outlook) {
@@ -812,7 +958,7 @@ const CareerCard = ({ career, onSimilarCareers, onViewPathway, onAddToComparison
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => window.open(career.learn_more_url, '_blank')}
+                onClick={() => onOpenChat ? onOpenChat(career) : window.open(career.learn_more_url, '_blank')}
               >
                 Learn More
               </Button>
