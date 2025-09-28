@@ -11,9 +11,9 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 5002;
-const ENDPOINT = process.env.AZURE_INFERENCE_ENDPOINT;
+const ENDPOINT = process.env.AZURE_INFERENCE_ENDPOINT || 'https://models.inference.ai.azure.com';
 const DEFAULT_MODEL = 'openai/gpt-4o-mini';
-const MODEL = process.env.AZURE_INFERENCE_MODEL || DEFAULT_MODEL;
+const MODEL = DEFAULT_MODEL;
 const TOKEN = process.env.GITHUB_TOKEN;
 if (!TOKEN) {
   console.warn('Warning: GITHUB_TOKEN not set. /api/chat will return 503.');
@@ -27,6 +27,9 @@ app.post('/api/chat', async (req, res) => {
   try {
     if (!TOKEN) {
       return res.status(503).json({ error: 'Missing server token' });
+    }
+    if (!ENDPOINT) {
+      return res.status(503).json({ error: 'Missing AZURE_INFERENCE_ENDPOINT' });
     }
 
     const { messages, system } = req.body || {};
